@@ -20,6 +20,8 @@ XW.v6.3.2-cs.33267.200715.1627#
 
 - `F12` desde navegador y editar `input id="country" type="hidden"` y ponerlo en `511`
 - Aplicar y salvar
+- Advanced --> Installer EIRP control
+- Wireless --> quitar Calculate EIRP Limit
 
 ![](https://redama.es/Imagenes/ubiquiti_compliance_test.png)
 
