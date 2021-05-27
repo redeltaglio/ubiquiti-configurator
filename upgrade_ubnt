@@ -31,8 +31,12 @@ case $1 in
 			if [[ $(grep -c "192.168.1.20" /root/.ssh/known_hosts) -eq 1 ]]; then
 				ssh-keygen -f "/root/.ssh/known_hosts" -R "192.168.1.20"
 			fi
+			interfacectrl=$(ping -c 1 192.168.1.20 | grep [Ff]rom | grep time)
+			if [[ -z $interfacectrl ]]; then
+				ifconfig "$2:1" 192.168.1.21/24 up
+			fi
 			addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
-			if [ $addressfound != "192.168.1.20" ]; then
+			if [ "$addressfound" != "192.168.1.20" ]; then
 				echo -e "we didn't found default ubiquiti device \
 				\nplease reset it pressing the black button on the right"
 				sleep 60
@@ -73,7 +77,17 @@ case $1 in
 					exit 1
 				fi
 			else
-				echo -e "couldn't upgrade firmware version is the same or above"
+				echo -e "couldn't upgrade firmware version is the same or above \
+					\ngoing ahead with license unlock"
+				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 enable_ct  
+				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 reboot
+				sleep 60
+				echo -e "changing default password to temporary 123456789xyz4 and disable https "
+				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "echo -e \"123456789xyz4\n123456789xyz4\" | passwd"
+				systemcfgpassline=$(sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "cat /tmp/system.cfg | grep users.1.password")
+				
+				openssl passwd -1 -salt tL963iDU ubnt
+				
 			fi			
 		else
 			echo -e "we didn't found any ubiquiti device \
