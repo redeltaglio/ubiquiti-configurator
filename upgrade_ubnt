@@ -81,16 +81,18 @@ case $1 in
 					\ngoing ahead with license unlock"
 				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 enable_ct  
 				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 reboot
-				sleep 60
+				sleep 70
 				echo -e "changing default password to temporary 123456789xyz4 and disable https "
 				sshpass -p "ubnt" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "echo -e \"123456789xyz4\n123456789xyz4\" | passwd"
 				systemcfgpassline=$(sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "cat /tmp/system.cfg | grep users.1.password")
 				salt=$(echo $systemcfgpassline | sed 's/users.1.password=//' | cut -d \$ -f3)
 				systemcfgnewpass=$(openssl passwd -1 -salt $salt 123456789xyz4)
-				oldpwd=$(echo $systemcfgpassline | sed 's/users.1.password=//' | sed "s/\$1$salt\$//")
-				newpwd=$(echo $systemcfgnewpass | sed "s/\$1$salt\$//")
+				oldpwd=$(echo $systemcfgpassline | sed 's/users.1.password=//' | cut -d \$ -f4)
+				newpwd=$(echo $systemcfgnewpass | cut -d \$ -f4)
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/$oldpwd/$newpwd/\" /tmp/system.cfg"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/httpd.https.status=enabled/httpd.https.status=disabled/\" /tmp/system.cfg"
+				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/radio.countrycode=511/radio.countrycode=368/\" /tmp/system.cfg"
+				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/radio.1.subsystemid=0xe1b5/radio.1.subsystemid=0xe6b5/\" /tmp/system.cfg"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "cfgmtd -f /tmp/system.cfg -w"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 reboot
 			fi			
