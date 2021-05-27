@@ -24,11 +24,21 @@ fi
 
 case $1 in
 	"-I")
-		echo -e "running tcpdump for 1 minutes and 10 seconds searching for CDP packets...\n"
-		timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+		echo -e "running tcpdump for 1 minutes and 30 seconds searching for CDP packets...\n"
+		timeout 90 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
 		devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 		if [[ ! -z $devicefound ]]; then
+			if [[ $(grep -c "192.168.1.20" /root/.ssh/known_hosts) -eq 1 ]]; then
+				ssh-keygen -f "/root/.ssh/known_hosts" -R "192.168.1.20"
+			fi
 			addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
+			if [ $addressfound != "192.168.1.20" ]; then
+				echo -e "we didn't found default ubiquiti device \
+				\nplease reset it pressing the black button on the right"
+				sleep 60
+				./$0 -I $2
+				exit 1
+			fi
 			firmwarefound=$(cat $tmpfile | awk 'NR==6' | sed 's/^[[:space:]]*//g')
 			echo -e "\nfound a $devicefound with IPv4 $addressfound and firmware $firmwarefound \n"
 			typeoffirmware=$(echo $firmwarefound | cut -d . -f1)
@@ -41,14 +51,14 @@ case $1 in
 			if [[ $versionoffirmware < $versionofdownloadedfirmware ]]; then
 				echo -e "upgrading firmware..."
 				cp "firmware/$downloadedfirmware" "$tmpdir/fwupdate.bin"
-				sshpass -p "ubnt" scp "$tmpdir/fwupdate.bin" "ubnt@$addressfound:/tmp"
-				checkfirm=$(sshpass -p ubnt ssh ubnt@192.168.1.20 ls /tmp | grep fwupdate)
+				sshpass -p "ubnt" scp -o StrictHostKeyChecking=no "$tmpdir/fwupdate.bin" "ubnt@$addressfound:/tmp"
+				checkfirm=$(sshpass -p ubnt ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 ls /tmp | grep fwupdate)
 				if [[ ! -z $checkfirm ]]; then
 					echo -e "firmware upload successfull, now doing the upgrade. Please wait 90 seconds"
-					nohup sshpass -p ubnt ssh ubnt@192.168.1.20 /sbin/fwupdate -m
+					nohup sshpass -p ubnt ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 /sbin/fwupdate -m > /tmp/nohup.out
 					sleep 120
 					echo -e "firmwware upgrade done running tcpdump to verify"
-					timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+					timeout 90 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
 					devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 					if [[ ! -z $devicefound ]]; then
 						addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
@@ -66,7 +76,10 @@ case $1 in
 				echo -e "couldn't upgrade firmware version is the same or above"
 			fi			
 		else
-			echo -e "we didn't found any ubiquiti device \n"
+			echo -e "we didn't found any ubiquiti device \
+			\nplease reset it pressing the black button on the right"
+			sleep 60
+			./$0 -I $2
 			exit 1
 		fi
  	;;
