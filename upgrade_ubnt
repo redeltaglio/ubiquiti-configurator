@@ -1,0 +1,36 @@
+#!/bin/bash
+
+uid=$(id -u)
+app=$(basename $0)
+
+if [[ $uid -ne 0 ]]; then
+	echo -e "you've got to run $0 as UID=0"
+	exit 1
+fi
+
+if [[ $# -eq 0 ]]; then
+	echo -e $0 "have to be used with the following options \
+			\n \
+			\n-I  -> interface where the ubiquiti devices is connected \
+			\n"
+	
+	exit 1
+fi
+
+case $1 in
+	"-I")
+		echo -e "running tcpdump for 1 minutes and 10 seconds searching for CDP packets...\n"
+		timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> cdp.txt
+		devicefound=$(cat cdp.txt | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
+		if [[ ! -z $devicefound ]]; then
+			echo -e "\nfound a $devicefound"
+		else
+			echo -e "we didn't found any ubiquiti device \n"
+			exit 1
+		fi
+ 	;;
+	*)
+		echo -e "the only argument possible is -I interface"
+		exit 1
+	;;
+esac
