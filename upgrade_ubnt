@@ -1,9 +1,12 @@
 #!/bin/bash
+
 # https://community.ui.com/questions/airOS-5-6-with-Custom-Script-Support-/4bd71c6b-7e9c-43ee-9d9d-666a7a9708fd
 # https://community.ui.com/questions/airOS-v8-7-4-w-Custom-Script-Support/526da62b-d770-4e9e-b38f-cd3df08b92fa#comment/1fc55b49-8f26-40b1-a0f4-42afc85598f1
 
 uid=$(id -u)
 app=$(basename $0)
+tmpfile=$(mktemp)
+tmpdir=$(mktemp -d)
 
 if [[ $uid -ne 0 ]]; then
 	echo -e "you've got to run $0 as UID=0"
@@ -22,13 +25,46 @@ fi
 case $1 in
 	"-I")
 		echo -e "running tcpdump for 1 minutes and 10 seconds searching for CDP packets...\n"
-		timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> cdp.txt
-		devicefound=$(cat cdp.txt | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
+		timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+		devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 		if [[ ! -z $devicefound ]]; then
-			addressfound=$(cat cdp.txt | grep Address | awk '{print $9}')
-			firmwarefound=$(cat cdp.txt | awk 'NR==6' | sed 's/^[[:space:]]*//g')
-			echo -e "\nfound a $devicefound with IPv4 $addressfound and firmware $firmwarefound"
-						
+			addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
+			firmwarefound=$(cat $tmpfile | awk 'NR==6' | sed 's/^[[:space:]]*//g')
+			echo -e "\nfound a $devicefound with IPv4 $addressfound and firmware $firmwarefound \n"
+			typeoffirmware=$(echo $firmwarefound | cut -d . -f1)
+			typeset -i versionoffirmware=$(echo $firmwarefound | awk -F"$typeoffirmware.v"  '{print $2}' | cut  -f1 -d - | sed 's/\.//g')
+			echo -e "the type of ubiquiti board is $typeoffirmware and the version of firmware installed is $versionoffirmware  \
+				\ncheck new compliance test firmware onto https://community.ui.com/questions/airOS-5-6-with-Custom-Script-Support-/4bd71c6b-7e9c-43ee-9d9d-666a7a9708fd for XM, XW and TI\
+				\nand onto https://community.ui.com/questions/airOS-v8-7-4-w-Custom-Script-Support/526da62b-d770-4e9e-b38f-cd3df08b92fa#comment/1fc55b49-8f26-40b1-a0f4-42afc85598f1 for 2WA, 2XC, XC and WA boards \n"
+			downloadedfirmware=$(ls firmware/ | grep $typeoffirmware)
+			typeset -i versionofdownloadedfirmware=$(echo $downloadedfirmware | awk -F"$typeoffirmware.v"  '{print $2}' | cut  -f1 -d - | sed 's/\.//g')
+			if [[ $versionoffirmware < $versionofdownloadedfirmware ]]; then
+				echo -e "upgrading firmware..."
+				cp "firmware/$downloadedfirmware" "$tmpdir/fwupdate.bin"
+				sshpass -p "ubnt" scp "$tmpdir/fwupdate.bin" "ubnt@$addressfound:/tmp"
+				checkfirm=$(sshpass -p ubnt ssh ubnt@192.168.1.20 ls /tmp | grep fwupdate)
+				if [[ ! -z $checkfirm ]]; then
+					echo -e "firmware upload successfull, now doing the upgrade. Please wait 90 seconds"
+					nohup sshpass -p ubnt ssh ubnt@192.168.1.20 /sbin/fwupdate -m
+					sleep 120
+					echo -e "firmwware upgrade done running tcpdump to verify"
+					timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+					devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
+					if [[ ! -z $devicefound ]]; then
+						addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
+						firmwarefound=$(cat $tmpfile | awk 'NR==6' | sed 's/^[[:space:]]*//g')
+						echo -e "\nfound a $devicefound with IPv4 $addressfound and firmware $firmwarefound \n"
+					else
+						echo -e "firmware upgrade failed \n"
+						exit 1
+					fi
+				else
+					echo -e "error uploading firmware"
+					exit 1
+				fi
+			else
+				echo -e "couldn't upgrade firmware version is the same or above"
+			fi			
 		else
 			echo -e "we didn't found any ubiquiti device \n"
 			exit 1
