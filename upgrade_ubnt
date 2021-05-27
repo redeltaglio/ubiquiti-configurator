@@ -23,7 +23,10 @@ case $1 in
 		timeout 70 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> cdp.txt
 		devicefound=$(cat cdp.txt | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 		if [[ ! -z $devicefound ]]; then
-			echo -e "\nfound a $devicefound"
+			addressfound=$(cat cdp.txt | grep Address | awk '{print $9}')
+			firmwarefound=$(cat cdp.txt | awk 'NR==6' | sed 's/^[[:space:]]*//g')
+			echo -e "\nfound a $devicefound with IPv4 $addressfound and firmware $firmwarefound"
+						
 		else
 			echo -e "we didn't found any ubiquiti device \n"
 			exit 1
