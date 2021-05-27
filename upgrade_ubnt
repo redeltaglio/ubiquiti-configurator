@@ -1,4 +1,6 @@
 #!/bin/bash
+# https://community.ui.com/questions/airOS-5-6-with-Custom-Script-Support-/4bd71c6b-7e9c-43ee-9d9d-666a7a9708fd
+# https://community.ui.com/questions/airOS-v8-7-4-w-Custom-Script-Support/526da62b-d770-4e9e-b38f-cd3df08b92fa#comment/1fc55b49-8f26-40b1-a0f4-42afc85598f1
 
 uid=$(id -u)
 app=$(basename $0)
