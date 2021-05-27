@@ -1,4 +1,4 @@
-10:42:38.224150 CDPv1, ttl: 120s, checksum: 0x76d9 (unverified), length 110
+10:52:38.250174 CDPv1, ttl: 120s, checksum: 0x76d9 (unverified), length 110
 	Device-ID (0x01), value length: 9 bytes: 'Rocket M5'
 	Address (0x02), value length: 22 bytes: IPv4 (2) 192.168.1.20 IPv4 (1) 169.254.95.107
 	Capability (0x04), value length: 4 bytes: (0x00000002): Transparent Bridge
