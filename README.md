@@ -466,3 +466,11 @@ IHDR...M.........}.F.....tRNS.?.?.?...V....IDATx......0...7.."..!......{P.HDT.O.
 N.:......./......=M.+../<.j.om......U..!....;.......{?ou .{....O?..Lj...J..L;6.T=|...S...fDG \.}..2....f..A..2..;.C.z...{...6o....nf....(k....%r...."B......r..-".g....hBo.....?..>...|..o.3.#..s....BH2....E..].,...P72N.X.!!"..$. .a.?.E........}.....s.......................;.......IEND.B`.
 ```
 
+#### EdgeOS upgrade
+
+En nuestra red tenemos cabeceras EdgeOS, el sistema operativo de Ubiquiti que deriva de VyOS.
+
+De reciente ha salido una vulnerabilidad muy preocupante acerca de las actualizaciones de firmware de nuestro producto estrella. Se seguridad en fundamental para el correcto funcionamiento y la misma seguridad de nuestros usuarios. La vulnerabilidad toma la identificación [CVE-2021-22909](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-22909) y es detallada por el fabricante en un articulo de su foro:
+
+- [Security Advisory Bulletin 018](https://community.ui.com/releases/Security-Advisory-Bulletin-018-018/cfa1566b-4bf8-427b-8cc7-8cffba3a93a4)
+
