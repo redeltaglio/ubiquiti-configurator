@@ -17,6 +17,7 @@ if [[ $# -eq 0 ]]; then
 	echo -e $0 "have to be used with the following options \
 			\n \
 			\n-I  -> interface where the ubiquiti devices is connected \
+			\n-E  -> EdgeOS upgrade \
 			\n"
 	
 	exit 1
@@ -24,9 +25,9 @@ fi
 
 case $1 in
 	"-I")
-		echo -e "running tcpdump for 1 minutes and 30 seconds searching for CDP packets...\n"
-		timeout 90 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
-		devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
+		echo -e "running tcpdump for 1 minutes and 20 seconds searching for CDP packets...\n"
+		timeout 80 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+		devicefound=$(cat $tmpfile | head -n 10 | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 		if [[ ! -z $devicefound ]]; then
 			if [[ $(grep -c "192.168.1.20" /root/.ssh/known_hosts) -eq 1 ]]; then
 				ssh-keygen -f "/root/.ssh/known_hosts" -R "192.168.1.20"
@@ -62,8 +63,8 @@ case $1 in
 					nohup sshpass -p ubnt ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 /sbin/fwupdate -m > /tmp/nohup.out
 					sleep 120
 					echo -e "firmwware upgrade done running tcpdump to verify"
-					timeout 90 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
-					devicefound=$(cat $tmpfile | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
+					timeout 80 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
+					devicefound=$(cat $tmpfile | head -n 10 | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
 					if [[ ! -z $devicefound ]]; then
 						addressfound=$(cat $tmpfile | grep Address | awk '{print $9}')
 						firmwarefound=$(cat $tmpfile | awk 'NR==6' | sed 's/^[[:space:]]*//g')
@@ -89,6 +90,9 @@ case $1 in
 				systemcfgnewpass=$(openssl passwd -1 -salt $salt 123456789xyz4)
 				oldpwd=$(echo $systemcfgpassline | sed 's/users.1.password=//' | cut -d \$ -f4)
 				newpwd=$(echo $systemcfgnewpass | cut -d \$ -f4)
+				br0line=$(sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "ifconfig br0 |grep HWaddr")
+				typeset -u firstcookie=$(echo $br0line | sed "s/://g")
+				echo -e "Device ID: $firstcookie\n"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/$oldpwd/$newpwd/\" /tmp/system.cfg"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/httpd.https.status=enabled/httpd.https.status=disabled/\" /tmp/system.cfg"
 				sshpass -p "123456789xyz4" ssh -o StrictHostKeyChecking=no ubnt@192.168.1.20 "sed -i \"s/radio.countrycode=511/radio.countrycode=368/\" /tmp/system.cfg"
@@ -104,8 +108,14 @@ case $1 in
 			exit 1
 		fi
  	;;
+ 	"-E")
+ 	;;
 	*)
-		echo -e "the only argument possible is -I interface"
+		echo -e $0 "have to be used with the following options \
+			\n \
+			\n-I  -> interface where the ubiquiti devices is connected \
+			\n-E  -> EdgeOS upgrade \
+			\n"
 		exit 1
 	;;
 esac
