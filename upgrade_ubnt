@@ -8,10 +8,6 @@ app=$(basename $0)
 tmpfile=$(mktemp)
 tmpdir=$(mktemp -d)
 
-if [[ $uid -ne 0 ]]; then
-	echo -e "you've got to run $0 as UID=0"
-	exit 1
-fi
 
 if [[ $# -eq 0 ]]; then
 	echo -e $0 "have to be used with the following options \
@@ -25,6 +21,10 @@ fi
 
 case $1 in
 	"-I")
+		if [[ $uid -ne 0 ]]; then
+			echo -e "you've got to run $0 as UID=0"
+			exit 1
+		fi
 		echo -e "running tcpdump for 1 minutes and 20 seconds searching for CDP packets...\n"
 		timeout 80 tcpdump -nvi $2 -s 1500 ether dst 01:00:0c:cc:cc:cc 1> $tmpfile
 		devicefound=$(cat $tmpfile | head -n 10 | grep Device | awk '{print $7" "$8}' | sed "s/'//g")
@@ -109,6 +109,15 @@ case $1 in
 		fi
  	;;
  	"-E")
+ 		edgehost=
+		while [ -z $edgehost ]
+		do
+			echo 'Type the EdgeOS internal hostname '
+			read edgehost
+		done
+		currentfirmware=$(ssh $edgehost cat /etc/version)
+		currenthardware=$(ssh $edgehost /opt/vyatta/bin/vyatta-op-cmd-wrapper show version | awk 'FNR == 5 {print}' | awk '{print $3" "$4}')
+		echo -e "Current firmware is $currentfirmware over a $currenthardware"
  	;;
 	*)
 		echo -e $0 "have to be used with the following options \
