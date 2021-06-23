@@ -7,7 +7,10 @@ uid=$(id -u)
 app=$(basename $0)
 tmpfile=$(mktemp)
 tmpdir=$(mktemp -d)
-
+basedir=$(pwd)
+defaultinterface=$(ip route | grep default | awk '{print $5}')
+ipv4interface=$(ifconfig $defaultinterface | awk 'FNR == 2 {print}' | awk '{print $2}')
+localdomainname=$(dig -x $ipv4interface +short | sed "s/$(hostname).//" | sed 's/.$//')
 
 if [[ $# -eq 0 ]]; then
 	echo -e $0 "have to be used with the following options \
@@ -118,6 +121,35 @@ case $1 in
 		currentfirmware=$(ssh $edgehost cat /etc/version)
 		currenthardware=$(ssh $edgehost /opt/vyatta/bin/vyatta-op-cmd-wrapper show version | awk 'FNR == 5 {print}' | awk '{print $3" "$4}')
 		echo -e "Current firmware is $currentfirmware over a $currenthardware"
+		isupgradable=$(ssh $edgehost sudo /usr/sbin/ubnt-fw-latest --refresh | sed -e "s/{//" -e "s/}//" | tr , '\n' | awk 'FNR == 4 {print}' | sed "s/\"state\"://" | sed "s/\"//g")
+		if [[ "$isupgradable" -eq "can-upgrade" ]]; then
+			firmwareupgrade=$(ssh $edgehost sudo /usr/sbin/ubnt-fw-latest --refresh | sed -e "s/{//" -e "s/}//" | tr , '\n' | awk 'FNR == 1 {print}' | sed "s/\"version\"://" | sed "s/\"//g")
+			ctrl=
+			echo -e "It is possible to upgrade $currentfirmware to $firmwareupgrade, procede to download?\n "
+			read ctrl
+			case $ctrl in
+				"yes")
+					md5firmware=$(ssh $edgehost sudo /usr/sbin/ubnt-fw-latest --refresh | sed -e "s/{//" -e "s/}//" | tr , '\n' | awk 'FNR == 3 {print}' | sed "s/\"md5\"://" | sed "s/\"//g")
+					urlfirmware=$(ssh $edgehost sudo /usr/sbin/ubnt-fw-latest --refresh | sed -e "s/{//" -e "s/}//" | tr , '\n' | awk 'FNR == 2 {print}' | sed "s/\"url\"://" | sed "s/\"//g" | tr -d '[:blank:]')
+					tmpdir=$(mktemp -d)
+					wget "$urlfirmware" -O "$tmpdir/edgeos_firmware.rar"
+					md5downloaded=$(md5sum "$tmpdir/edgeos_firmware.rar" | awk '{print $1}')
+					for vpnc_host in $(dig openbsd.$localdomainname TXT +short | sed "s/\"//g" | tr \; '\n' | sed '$d'); do
+						echo -e "Connecting to $vpnc_host to comprobe MD5 en every hosts"
+						"md5$vpnc_host"=$(ssh $vpnc_host.$localdomainname "ftp -o /tmp/edgeos_firmware.rar $urlfirmware; md5 /tmp/edgeos_firmware.rar ; rm -rf /tmp/edgeos_firmware.rar")
+					done
+					
+					rm -rf "$tmpdir/"
+				;;	
+				"no")
+				;;
+				*) 
+					echo -e "type yes or no"
+					exit 1
+				;;
+			esac
+			
+		fi
  	;;
 	*)
 		echo -e $0 "have to be used with the following options \

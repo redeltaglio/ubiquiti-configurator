@@ -1,0 +1,787 @@
+#!/bin/bash
+
+KNAME=vmlinux.64
+RNAME=squashfs.img
+VNAME=version
+WNAME=w
+O_KNAME=vmlinux.64o
+O_RNAME=squashfs.o
+O_VNAME=version.o
+O_WNAME=w.o
+T_KNAME=vmlinux.tmp
+T_RNAME=squashfs.tmp
+T_VNAME=version.tmp
+T_WNAME=w.tmp
+T_COMPAT=compat
+R_WNAME=w.r*
+
+BOARD_TYPE=$(/usr/sbin/ubnt-hal-e getBoardIdE)
+KERN_PART=$(/usr/sbin/ubnt-hal getKernPart)
+MNT_DIR=/var/run/umnt
+REBOOTNEEDED=/var/run/needsareboot
+UPGRADING=/var/run/upgrading
+DOWNLOADING=/var/run/downloading
+RUNNING=/var/run/image_running
+BDEFAULT=/var/run/image_default
+ROOT_DIR=/root.dev
+LOG=/var/run/ubnt-upgrade.log
+TMP_DIR="/tmp/upgrade.$$"
+NOPROMPT=0
+FORCE_PROMPT=0
+
+if ! $( >$LOG); then
+    echo 'Not have permission to run this script.'
+    exit 1
+fi
+
+# 
+if [ -z "$BOARD_TYPE" ]; then
+    echo "Can not get board ID."
+    exit 1
+fi
+
+if [ -z "$KERN_PART" ]; then
+    echo "Can not get kernel partition."
+    exit 1
+fi
+
+# include platform specific script file
+PLAT_SCRIPT=/usr/bin/ubnt-upgrade.${BOARD_TYPE}
+if ! [ -f "${PLAT_SCRIPT}" ]; then
+    echo "Platform script ${PLAT_SCRIPT} is missing"
+    exit 1
+fi
+. ${PLAT_SCRIPT}
+
+refresh_fw_latest () {
+    /usr/sbin/ubnt-fw-latest --refresh &>/dev/null
+}
+
+remove_tmp ()
+{
+    if ! (rm -rf $MNT_DIR/$T_KNAME $MNT_DIR/$T_KNAME.md5 \
+                 $ROOT_DIR/$T_RNAME $ROOT_DIR/$T_RNAME.md5 \
+                 $ROOT_DIR/$T_VNAME $ROOT_DIR/$T_WNAME) >>$LOG 2>&1; then
+        echo 'Failed to remove temp files'
+        exit 1
+    fi
+}
+
+remove_reset ()
+{
+    if ! (rm -rf $ROOT_DIR/w.[0-9a-f][0-9a-f]*) >>$LOG 2>&1; then
+        echo 'Failed to remove reset directories'
+        exit 1
+    fi
+}
+
+exit_cleanup ()
+{
+    sync
+    popd 2> /dev/null
+    rm -rf $MNT_DIR/*tmp*
+    rm -rf $ROOT_DIR/*tmp*
+    umount $MNT_DIR >/dev/null 2>&1
+    rm -rf $MNT_DIR
+    rm -rf $TMP_DIR 
+    rm -f $UPGRADING
+    rm -f $DOWNLOADING
+
+    # Remove firmware image file from /tmp/, whether upgrade succeeded or not.
+    # This is needed to ensure that big files in /tmp/ do not occupy RAM when
+    # upgrade is over.
+    if [[ ! -z $UTAR ]] && [[ -f $UTAR ]] && [[ $UTAR =~ ^/tmp/.* ]]; then
+        rm -f $UTAR
+    fi
+    refresh_fw_latest
+}
+
+get_tar_by_url ()
+{
+    mkdir $TMP_DIR
+    if [ "$NOPROMPT" -eq 0 ]; then
+        echo "Trying to get upgrade file from $TAR"
+    fi
+
+    if [ -n "$USERNAME" ]; then
+        auth="-u $USERNAME:$PASSWORD"
+    else
+        auth=""
+    fi
+
+    filename="${TMP_DIR}/${TAR##*/}"
+    if [ "$NOPROMPT" -eq 0 ]; then
+        curl -k $auth -f -L -o $filename $TAR
+    else
+        curl -k $auth -f -s -L -o $filename $TAR
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Unable to get upgrade file from $TAR"
+        rm -f $filename
+        rm -f $DOWNLOADING
+        exit 1
+    fi
+
+    if [ ! -e $filename ]; then
+        echo "Download of $TAR failed"
+        rm -f $DOWNLOADING
+        exit 1
+    fi
+
+    if [ "$NOPROMPT" -eq 0 ]; then
+        echo "Download succeeded"
+    fi
+
+    TAR=$filename
+}
+
+tolower () {
+    echo "$*" | tr '[:upper:]' '[:lower:]'
+}
+
+# Validates a user response.  Returns the response if valid.
+# Returns the default is the user just hits enter.  
+# Returns nothing if not valid.  Default parameter is $1.
+# Options are in $2.  If options are defined return must be a member
+# of the enum. 
+get_response () {
+    local ldefault=$(tolower "$1")
+    local loptions=$(tolower "$2")
+
+    # get the response from the user
+    read myresponse
+    myresponse=$(tolower "$myresponse")
+  
+    # Check to see if the user accepts the default
+    if [ -z "$myresponse" ]; then
+        echo -n $ldefault
+    # if we are passing in options to check, 
+    # make sure response is a valid option
+    elif [ -n "$loptions" ]; then
+        for token in $loptions
+        do
+            if [ "$token" == "$myresponse" ]; then
+                echo -n "$myresponse"
+                return 0
+            fi
+        done
+        return 1
+    else
+        echo -n "$myresponse"
+    fi
+    
+    return 0
+}
+
+read_version () {
+    if [ ! -e "$1" ]; then
+        return
+    fi
+    VER=$(cat "$1")
+    VER=${VER##*:* }          
+    echo $VER
+}
+
+format_image_line () {
+    if [ ! -z "$1" ]; then 
+        printf '%-30s ' $1
+        if [ "$1" == "$2" ]; then
+            echo -n '(running image) '
+        fi
+        if [ "$1" == "$3" ]; then
+            echo -n '(default boot) '
+        fi
+        echo
+    fi
+}
+
+show_images () {
+    IMG1=$(read_version "$ROOT_DIR/$VNAME")
+    IMG2=$(read_version "$ROOT_DIR/$O_VNAME")
+
+    if [ -e $RUNNING ]; then
+        NOW_RUN=$(read_version "$RUNNING")
+        NEXT_RUN=$(read_version "$BDEFAULT")
+    else
+        NOW_RUN=$(read_version "$ROOT_DIR/$VNAME")
+        NEXT_RUN=$NOW_RUN
+    fi
+
+    echo 'The system currently has the following image(s) installed:'
+    echo
+    format_image_line "$IMG1" "$NOW_RUN" "$NEXT_RUN"
+    format_image_line "$IMG2" "$NOW_RUN" "$NEXT_RUN"
+    echo
+    if [ -e $REBOOTNEEDED ]; then
+        echo 'A reboot is needed to boot default image'
+    fi
+}
+
+show_images_allowed () {
+    IMG1=$(read_version "$ROOT_DIR/$VNAME")
+    IMG2=$(read_version "$ROOT_DIR/$O_VNAME")
+    echo -n $IMG1 $IMG2
+}
+
+get_size () {
+    F=$1
+    DU_FLAGS=$2
+    [ -z "$DU_FLAGS" ] && DU_FLAGS="-s"
+    if [ -e $F ]; then
+        VAL=$(du $DU_FLAGS $F | cut -f 1)
+        echo $VAL
+    fi
+}
+
+format_storage_line () {
+    if [ ! -z $1 ]; then
+        RO=$(get_size $ROOT_DIR/$2)
+        RW=$(get_size $ROOT_DIR/$3)
+        TT=$(($RO + $RW))
+        printf '%-30s %12s %12s %12s\n' $1  $RO  $RW $TT
+    fi
+}
+
+show_images_storage () {
+    IMG1=$(read_version "$ROOT_DIR/$VNAME")
+    IMG2=$(read_version "$ROOT_DIR/$O_VNAME")
+
+    printf '%-30s %12s %12s %12s\n' 'Image name' 'Read-Only' 'Read-Write' 'Total'
+    printf '%-30s %12s %12s %12s\n' '------------------------------' \
+           '------------' '------------' '------------'
+    format_storage_line "$IMG1" "$RNAME" "$WNAME"
+    format_storage_line "$IMG2" "$O_RNAME" "$O_WNAME"
+}
+
+rename () {
+    IMG1=$(read_version "$ROOT_DIR/$VNAME")
+    IMG2=$(read_version "$ROOT_DIR/$O_VNAME")
+    if [ "$1" == "$IMG1" ]; then
+        if [ "$2" == "$IMG2" ]; then
+           echo "Error: same name as the other image."
+           exit 1;
+        fi
+        echo "Version:      $2" > "$ROOT_DIR/$VNAME"
+        exit 0;
+    fi
+    if [ "$1" == "$IMG2" ]; then
+        if [ "$2" == "$IMG1" ]; then
+           echo "Error: same name as the other image."
+           exit 1;
+        fi
+        echo "Version:      $2" > "$ROOT_DIR/$O_VNAME"
+        cp $ROOT_DIR/$O_VNAME $RUNNING
+        exit 0;
+    fi
+    echo "Error: image $1 not found"
+    echo
+    show_images
+    exit 1
+}
+
+check_space_tar () {
+    local DIR=$1
+    local TAR=$2
+    local FILE=$3
+    local SPACE=$(df $DIR | tail -1 | awk '{ print $4 }')
+    local NEED=$(tar -tvf $TAR $FILE | awk '{ print $3 }')    
+
+    (( SPACE = SPACE * 1024 ))
+    if [ "$SPACE" -lt "$NEED" ]; then
+       return 1
+    fi
+    return 0
+}
+
+echo_status () {
+    if [ "$NOPROMPT" -eq 1 ]; then
+       return
+    fi
+    echo -n $1
+}
+
+echo_done () {
+    if [ "$NOPROMPT" -eq 1 ]; then
+       return
+    fi
+    echo Done
+}
+
+remove_old_done=''
+
+remove_old () {
+    if [ -n "$remove_old_done" ]; then
+        return 0
+    fi
+    remove_old_done=yes
+    echo_status 'Removing old image... '
+    if ! (rm -rf $ROOT_DIR/$O_RNAME $ROOT_DIR/$O_RNAME.md5 \
+                 $ROOT_DIR/$O_VNAME $ROOT_DIR/$O_WNAME \
+                 $ROOT_DIR/$R_WNAME) >>$LOG 2>&1; then
+        echo 'Failed to remove old image'
+        exit 1
+    fi
+    remove_old_kernel
+    sync
+    echo_done
+    return 0
+}
+
+clear_dir() {
+    DIR=$1
+    DIR_SIZE=$(get_size $DIR)
+    [ "$DIR_SIZE" == "0" ] && unset DIR_SIZE
+
+    if [ ! -z "$DIR_SIZE" ]; then
+        DIR_SIZE=$(get_size $DIR -sh)
+        echo_status "Clearing directory $DIR ($DIR_SIZE)..."
+        rm -rf $DIR/*
+        echo_done
+    fi
+}
+
+ACTION=$1
+if [ "$ACTION" == '--show' ]; then
+    show_images
+    exit 0
+fi
+
+if [ "$ACTION" == '--show-allowed' ]; then
+    show_images_allowed
+    exit 0
+fi
+
+if [ "$ACTION" == '--show-storage' ]; then
+    show_images_storage
+    exit 0
+fi
+
+trap exit_cleanup EXIT
+
+if [ "$ACTION" == '--rename' ]; then
+    old=$2
+    new=$3
+    rename "$old" "$new"
+fi
+
+if [ "$ACTION" == '--switch-noprompt' ]; then
+    NOPROMPT=1
+    ACTION='--switch'
+fi
+
+if [ "$ACTION" == '--switch' ]; then
+    if [ ! -e "$ROOT_DIR/$O_VNAME" ]; then
+       echo "There is no image to switch to."
+       exit 1
+    fi
+    # switch images
+    show_images
+    while [ -z "$YESNO" ]
+    do
+        if [ "$NOPROMPT" -eq 1 ]; then
+            break;
+        fi
+        echo -n "Are you sure you want to switch images? (Yes/No) [Yes]: "
+        YESNO=$(get_response "Yes" "Yes No Y N")
+        if [ "$YESNO" == "no" ] || [ "$YESNO" == "n" ]; then
+            echo 'Canceling switch'
+            exit 1
+        fi
+    done
+
+    mount_kern_part
+    remove_tmp
+    sync
+    echo 'Moving images... '
+    if [ ! -e $RUNNING ]; then
+        cp $ROOT_DIR/$VNAME $RUNNING
+    fi
+    if ! (mv $ROOT_DIR/$O_RNAME $ROOT_DIR/$T_RNAME && \
+          mv $ROOT_DIR/$O_RNAME.md5 $ROOT_DIR/$T_RNAME.md5 && \
+          mv $ROOT_DIR/$O_VNAME $ROOT_DIR/$T_VNAME && \
+          mv $ROOT_DIR/$O_WNAME $ROOT_DIR/$T_WNAME) >>$LOG 2>&1; then
+        echo 'Failed to move previous image'
+        exit 1
+    fi
+    if ! (mv $ROOT_DIR/$RNAME $ROOT_DIR/$O_RNAME && \
+          mv $ROOT_DIR/$RNAME.md5 $ROOT_DIR/$O_RNAME.md5 && \
+          mv $ROOT_DIR/$VNAME $ROOT_DIR/$O_VNAME && \
+          mv $ROOT_DIR/$WNAME $ROOT_DIR/$O_WNAME) >>$LOG 2>&1; then
+        echo 'Failed to move current image'
+        exit 1
+    fi
+    if ! (mv $ROOT_DIR/$T_RNAME $ROOT_DIR/$RNAME && \
+          mv $ROOT_DIR/$T_RNAME.md5 $ROOT_DIR/$RNAME.md5 && \
+          mv $ROOT_DIR/$T_VNAME $ROOT_DIR/$VNAME && \
+          mv $ROOT_DIR/$T_WNAME $ROOT_DIR/$WNAME) >>$LOG 2>&1; then
+        echo 'Failed to move images'
+        exit 1
+    fi
+    switch_image_kernel
+
+    cp $ROOT_DIR/$VNAME $BDEFAULT
+    VNOW=$(read_version "$ROOT_DIR/$VNAME")
+    VRUN=$(read_version "$RUNNING")    
+    if [ "$VNOW" == "$VRUN" ]; then
+        rm -f $REBOOTNEEDED
+    else
+        touch $REBOOTNEEDED
+    fi
+    sync
+    echo Done
+    over=$(cat $ROOT_DIR/$O_VNAME)
+    nver=$(cat $ROOT_DIR/$VNAME)
+    echo -e "Switched from\n  $over\nto\n  $nver"
+    refresh_fw_latest
+    exit 0
+fi
+
+if [ -e $REBOOTNEEDED ]; then
+    echo 'System has already been upgraded and needs a reboot before upgrade'
+    exit 1
+fi
+
+if [ "$ACTION" == '--delete-noprompt' ]; then
+    NOPROMPT=1
+    ACTION='--delete'
+fi
+
+if [ "$ACTION" == '--delete' ]; then
+    show_images
+    if [ ! -e "$ROOT_DIR/$O_VNAME" ]; then
+       echo "There is no image to delete."
+       exit 1
+    fi
+    VOLD=$(read_version "$ROOT_DIR/$O_VNAME")
+    echo "You are about to delete image [$VOLD]"
+    while [ -z "$YESNO" ]
+    do
+        if [ "$NOPROMPT" -eq 1 ]; then
+            break
+        fi
+        echo -n "Are you sure you want to delete ? (Yes/No) [Yes]: "
+        YESNO=$(get_response "Yes" "Yes No Y N")
+        if [ "$YESNO" == "no" ] || [ "$YESNO" == "n" ]; then
+            echo 'Canceling delete'
+            exit 1
+        fi
+    done
+
+    mount_kern_part
+    remove_tmp
+    sync
+    echo -n 'Removing old image... '
+    if ! (rm -rf $ROOT_DIR/$O_RNAME $ROOT_DIR/$O_RNAME.md5 \
+             $ROOT_DIR/$O_VNAME $ROOT_DIR/$O_WNAME \
+             $ROOT_DIR/$R_WNAME) >>$LOG 2>&1; then
+        echo 'Failed to remove old image'
+        exit 1
+    fi
+    remove_old_kernel
+    sync
+    echo Done
+    exit 0
+fi
+
+if [ "$ACTION" == '--upgrade-noprompt' ]; then
+    NOPROMPT=1
+elif [ "$ACTION" == '--upgrade-force-prompt' ]; then
+    FORCE_PROMPT=1
+elif [ "$ACTION" != '--upgrade' ]; then
+    echo Invalid action
+    exit 1
+fi
+
+TAR=$2
+URL=${TAR%%:*}
+
+if [ -e $ROOT_DIR/$O_VNAME ] || [ "$FORCE_PROMPT" -eq 1 ]; then
+    YESNO=''
+    OLDVER=$(read_version "$ROOT_DIR/$O_VNAME")
+    while [ -z "$YESNO" ]
+    do
+        if [ "$NOPROMPT" -eq 1 ]; then
+            break
+        fi
+        if [ -e $ROOT_DIR/$O_VNAME ]; then
+            echo "Version [$OLDVER] is about to be replaced"
+            echo -n "Are you sure you want to replace old version? (Yes/No) [Yes]: "
+        else
+            echo -n "Are you sure you want to upgrade? (Yes/No) [Yes]: "
+        fi
+
+        YESNO=$(get_response "Yes" "Yes No Y N")
+        if [ "$YESNO" == "no" ] || [ "$YESNO" == "n" ]; then
+            echo 'Canceling upgrade'
+            exit 1
+        fi
+    done
+fi
+
+diff_cmd="cli-shell-api showConfig --show-cfg1 /config/config.boot \
+                                   --show-cfg2 @ACTIVE \
+                                   --show-context-diff"
+unsaved=`$diff_cmd | wc -l`
+if [ $unsaved -ne 0 ]; then
+    YESNO=''
+    while [ -z "$YESNO" ]
+    do
+        if [ "$NOPROMPT" -eq 1 ]; then
+            break
+        fi
+        echo "Warning: configuration changes have not been saved."
+        echo "You can review the changes between working and saved configuration"
+        echo "by issuing 'compare saved' in configuration mode."
+        echo -n "Are you sure you want to upgrade and lose unsaved changes? (Yes/No) [No]: "
+        YESNO=$(get_response "No" "Yes No Y N")
+        if [ "$YESNO" == "no" ] || [ "$YESNO" == "n" ]; then
+            echo 'Canceling upgrade'
+            exit 1
+        fi
+    done
+fi
+
+
+if [ $# -eq 4 ]; then
+    USERNAME=$3
+    PASSWORD=$4
+else
+    USERNAME=""
+    PASSWORD=""
+fi
+
+touch $DOWNLOADING
+sync
+refresh_fw_latest
+
+if [ "$URL" != "$TAR" ]; then
+    if [ "$URL" = "http" -o "$URL" = "https" -o \
+        "$URL" = "ftp" -o "$URL" = "tftp" -o \
+        "$URL" = "scp" ]; then
+        get_tar_by_url
+    fi
+fi
+
+if [ ! -f "$TAR" ]; then
+    echo 'Cannot find upgrade image. Upgrade failed.'
+    exit 1
+fi
+
+UTAR=$(readlink -f "$TAR")
+
+echo_status 'Checking upgrade image... '
+pushd $ROOT_DIR >/dev/null
+clvl=''
+if tar -xf $UTAR $T_COMPAT >>$LOG 2>&1; then
+    clvl=$(cat $T_COMPAT)
+    rm -f $T_COMPAT
+fi
+if ! /usr/sbin/ubnt-hal compatLevelSupported "$clvl" >/dev/null; then
+    echo 'Upgrade image does not support the device. Upgrade failed.'
+    exit 1
+fi
+popd >/dev/null
+echo_done
+
+echo_status 'Preparing to upgrade... '
+touch $UPGRADING
+rm -f $DOWNLOADING
+mount_kern_part
+remove_tmp
+remove_reset
+sync
+refresh_fw_latest
+echo_done
+
+# Always clear APT files and CORE files before doing upgrade
+clear_dir "/var/lib/apt"
+clear_dir "/var/cache/apt"
+clear_dir "/var/core"
+
+echo_status 'Copying upgrade image... '
+pushd $MNT_DIR > /dev/null
+
+if ! check_space_tar $MNT_DIR $UTAR $T_KNAME; then
+   echo 'Not enough disk space for kernel'
+   exit 1;
+fi
+tar -xf $UTAR $T_KNAME $T_KNAME.md5 >>$LOG 2>&1
+if [ $? -ne 0 ]; then
+    popd > /dev/null
+    echo 'Failed to find kernel in upgrade file'
+    exit 1
+fi
+
+popd > /dev/null
+pushd $ROOT_DIR > /dev/null
+if ! check_space_tar $ROOT_DIR $UTAR $T_RNAME; then
+    # Keep quiet if --upgrade-noprompt was set
+    if [ "$NOPROMPT" -ne 1 ]; then
+        echo 'Not enough disk space for root file system'
+    fi
+
+    YESNO=''
+    while [ -z "$YESNO" ]; do
+        if [ "$NOPROMPT" -eq 1 ]; then
+            break
+        fi
+        echo -n "Do you want to delete old version first? (Yes/No) [Yes]: "
+        YESNO=$(get_response "Yes" "Yes No Y N")
+        if [ "$YESNO" == "no" ] || [ "$YESNO" == "n" ]; then
+            echo 'Canceling upgrade'
+            exit 1
+        fi
+    done
+
+    remove_old
+
+    if ! check_space_tar $ROOT_DIR $UTAR $T_RNAME; then
+        echo 'Still not enough disk space for root file system'
+        echo 'Canceling upgrade'
+        exit 1
+    fi
+fi
+
+tar -xf $UTAR $T_RNAME $T_RNAME.md5 $T_VNAME >>$LOG 2>&1
+if [ $? -ne 0 ]; then
+    popd > /dev/null
+    echo 'Failed to find root filesystem in upgrade file'
+    exit 1
+fi
+VER_NOW=$(read_version "$ROOT_DIR/$VNAME")
+VER_NEW=$(read_version "$ROOT_DIR/$T_VNAME")
+if [ $VER_NOW == $VER_NEW ]; then
+    VER_NEW=$VER_NEW"-1"
+    if [ "$NOPROMPT" -ne 1 ]; then
+       echo Warning duplicate image name, changing to [$VER_NEW]
+    fi
+    sed -i "s/$VER_NOW/$VER_NEW/" $ROOT_DIR/$T_VNAME
+fi
+popd > /dev/null
+sync
+echo_done
+
+remove_old
+
+echo_status 'Checking upgrade image... '
+if [ ! -f $MNT_DIR/$T_KNAME ] || [ ! -f $MNT_DIR/$T_KNAME.md5 ] \
+   || [ ! -f $ROOT_DIR/$T_RNAME ] || [ ! -f $ROOT_DIR/$T_RNAME.md5 ] \
+   || [ ! -f $ROOT_DIR/$T_VNAME ]; then
+    echo 'Invalid image. Upgrade Failed.'
+    exit 1
+fi
+
+check_md5 ()
+{
+    local file="$1"
+    local sum1=$(md5sum "$file" | cut -d ' ' -f 1)
+    local sum2=$(cat "$file.md5")
+    if [ "$sum1" != "$sum2" ]; then
+        return 1
+    fi
+    return 0
+}
+
+if ! (check_md5 "$MNT_DIR/$T_KNAME" \
+      && check_md5 "$ROOT_DIR/$T_RNAME") >>$LOG 2>&1; then
+    echo 'Invalid checksum. Upgrade Failed.'
+    exit 1
+fi
+echo_done
+    
+echo_status 'Copying config data... '
+mkdir $ROOT_DIR/$T_WNAME
+
+shopt -s dotglob
+if ! (cd $ROOT_DIR && cp -ar $WNAME/config $T_WNAME && \
+      chown root:vyattacfg $T_WNAME/config) >>$LOG 2>&1; then
+    echo 'Failed to copy config'
+    exit 1
+fi
+
+shopt -u nullglob
+src="$WNAME/etc/ssh/*"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/etc/ssh && \
+              cp -a $src $T_WNAME/etc/ssh/) >>$LOG 2>&1; then
+    echo 'Failed to copy ssh host keys'
+    exit 1
+fi
+src="$WNAME/etc/lighttpd/server.pem"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/etc/lighttpd && \
+              cp -p $src $T_WNAME/etc/lighttpd/) >>$LOG 2>&1; then
+    echo 'Failed to copy Web server certificate'
+    exit 1
+fi
+src="$WNAME/var/lib/dhcpd.leases"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/var/lib && \
+              cp -p $src $T_WNAME/var/lib/) >>$LOG 2>&1; then
+    echo 'Failed to copy dhcpd leases'
+    exit 1
+fi
+src="$WNAME/etc/mailname"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/etc && \
+              cp -p $src $T_WNAME/etc/) >>$LOG 2>&1; then
+    echo 'Failed to copy mailname'
+    exit 1
+fi
+src="$WNAME/etc/hostname"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/etc && \
+              cp -p $src $T_WNAME/etc/) >>$LOG 2>&1; then
+    echo 'Failed to copy hostname'
+    exit 1
+fi
+src="$WNAME/etc/hosts"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/etc && \
+              cp -p $src $T_WNAME/etc/) >>$LOG 2>&1; then
+    echo 'Failed to copy hosts file'
+    exit 1
+fi
+src="$WNAME/var/lib/dhcpv6/dhcp6c_duid"
+if [ -n "$(ls $ROOT_DIR/$src 2>/dev/null)" ] \
+        && ! (cd $ROOT_DIR && mkdir -p $T_WNAME/var/lib/dhcpv6 && \
+              cp -p $src $T_WNAME/var/lib/dhcpv6/) >>$LOG 2>&1; then
+    echo 'Failed to copy dhcpv6-pd duid'
+    exit 1
+fi
+echo_done
+
+if [ ! -e $RUNNING ]; then
+    cp $ROOT_DIR/$VNAME $RUNNING
+fi
+
+echo_status 'Finishing upgrade... '
+touch $REBOOTNEEDED
+sync
+refresh_fw_latest
+if ! (mv $ROOT_DIR/$RNAME $ROOT_DIR/$O_RNAME && \
+      mv $ROOT_DIR/$RNAME.md5 $ROOT_DIR/$O_RNAME.md5 && \
+      mv $ROOT_DIR/$VNAME $ROOT_DIR/$O_VNAME && \
+      mv $ROOT_DIR/$WNAME $ROOT_DIR/$O_WNAME) >>$LOG 2>&1; then
+    echo 'Failed to move current image'
+    exit 1
+fi
+if ! (mv $ROOT_DIR/$T_RNAME $ROOT_DIR/$RNAME && \
+      mv $ROOT_DIR/$T_RNAME.md5 $ROOT_DIR/$RNAME.md5 && \
+      mv $ROOT_DIR/$T_VNAME $ROOT_DIR/$VNAME && \
+      mv $ROOT_DIR/$T_WNAME $ROOT_DIR/$WNAME) >>$LOG 2>&1; then
+    echo 'Failed to move new image'
+    exit 1
+fi
+finish_upgrade_kernel
+
+cp $ROOT_DIR/$VNAME $BDEFAULT
+
+sync
+echo_done
+
+if [ "$NOPROMPT" -ne 1 ]; then
+   echo 'Upgrade completed'
+fi
+exit 0
+
