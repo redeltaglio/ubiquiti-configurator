@@ -1,57 +1,75 @@
 cat << EOF > rc.poststart
 #!/bin/ash
-#version pppoed 2
+#version redama 0.1
+
 #----Vlan Database----
-VOZ_VLAN=212
+ADM_VLAN=100
 NETFLIX_VLAN=111
+DATA_VLAN=131
+VOZ_VLAN=213
 #----------------------
 #----Layer 3 config----
-IP_ADDR_ADM=`/sbin/ifconfig ath0.100 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
-NETWORK_LAN=`/usr/bin/ip route | grep eth0 | grep -v default | cut -d ' ' -f1`
-NETWORK_GW=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
-DMZ=192.168.5.2
-#IP_ADDR_VOZ=10.35.46.84
-#NETMASK_VOZ=255.255.255.0
+IP_ADDR_ADM=$(/sbin/ifconfig "ath0.$ADM_VLAN" | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+NETWORK_LAN=$(/usr/bin/ip route | grep eth0 | grep -v default | cut -d ' ' -f1)
+NETWORK_GW=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+LAST_OCTET=$(echo $IP_ADDR_ADM | cut -d . -f4)
+if [[ $(ip link | grep -c $NETFLIX_VLAN) -eq 1 ]]; then
+	ctrl_netflix=1
+	IP_ADDR_NETFLIX="172.16.23.$LAST_OCTET/24"
+	NETFLIX_GW="172.16.23.1"
+	NETFLIX_HOST="10.1.10.124"
+fi
+if [[ $(ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
+	ctrl_voz=1
+	IP_ADDR_VOZ="172.16.113.$LAST_OCTET/24"
+	VOZ_GW="172.16.113.1"
+fi
 #----------------------
-#vozip
-#ifconfig ath0.$VOZ_VLAN $IP_ADDR_VOZ netmask $NETMASK_VOZ
+
+#others VLANs
+[[ $ctrl_netflix ]] && ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN" 
+[[ $ctrl_voz ]] && ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN"
 #CoS bit
-vconfig set_egress_map ath0.100 0 1
-vconfig set_egress_map ath0.100 1 1
-vconfig set_egress_map ath0.100 2 1
-vconfig set_egress_map ath0.100 3 1
-vconfig set_egress_map ath0.100 4 1
-vconfig set_egress_map ath0.100 5 1
-vconfig set_egress_map ath0.100 6 1
-vconfig set_egress_map ath0.100 7 1
-vconfig set_egress_map ath0.212 0 6
-vconfig set_egress_map ath0.212 1 6
-vconfig set_egress_map ath0.212 2 6
-vconfig set_egress_map ath0.212 3 6
-vconfig set_egress_map ath0.212 4 6
-vconfig set_egress_map ath0.212 5 6
-vconfig set_egress_map ath0.212 6 6
-vconfig set_egress_map ath0.212 7 6
-vconfig set_egress_map ath0.950 0 3
-vconfig set_egress_map ath0.950 1 3
-vconfig set_egress_map ath0.950 2 3
-vconfig set_egress_map ath0.950 3 3
-vconfig set_egress_map ath0.950 4 3
-vconfig set_egress_map ath0.950 5 3
-vconfig set_egress_map ath0.950 6 3
-vconfig set_egress_map ath0.950 7 3
-vconfig set_egress_map ath0.2000 0 3
-vconfig set_egress_map ath0.2000 1 3
-vconfig set_egress_map ath0.2000 2 3
-vconfig set_egress_map ath0.2000 3 3
-vconfig set_egress_map ath0.2000 4 3
-vconfig set_egress_map ath0.2000 5 3
-vconfig set_egress_map ath0.2000 6 3
-vconfig set_egress_map ath0.2000 7 3
+vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 1 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 2 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 3 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 4 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 5 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 6 1
+vconfig set_egress_map "ath0.$ADM_VLAN" 7 1
+[[ $ctrl_netflix ]] && \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 0 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 1 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 2 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 3 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 4 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 5 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 6 6 \
+	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 7 6
+[[ $ctrl_voz ]] && \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 0 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 1 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 2 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 3 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 4 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 5 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 6 6 \
+	vconfig set_egress_map "ath0.$VOZ_VLAN" 7 6
+vconfig set_egress_map "ath0.$DATA_VLAN" 0 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 1 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 2 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 3 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 4 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 5 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 6 3
+vconfig set_egress_map "ath0.$DATA_VLAN" 7 3
+
 #iptables
 iptables -F
 iptables -X
 iptables -t nat -F
+iptables -t mangle -F
 #FILTER
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 #WAN si necesario
@@ -66,7 +84,6 @@ iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
 iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
 iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
 #DSTNAT
-#iptables -t nat -A PREROUTING -p tcp -i ppp0 --dport 20080 -j DNAT --to 192.168.2.23
 #iptables -t nat -A PREROUTING -p udp -i ppp0 --dport 8000 -j DNAT --to 10.1.10.100
 #DMZ
 #iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
@@ -75,16 +92,22 @@ iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
 #configuracion VOZIP si necesaria
 #iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
 iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
+#MANGLE NETFLIX
+[[ $ctrl_netflix ]] && \
+	iptables -t mangle -A PREROUTING -s $NETFLIX_HOST -j MARK --set-mark "$NETFLIX_VLAN" \
+	ip rule add fwmark $NETFLIX_VLAN table netflix \
+	ip route add default via $NETFLIX_GW dev "ath0.$NETFLIX_VLAN" table netflix
 #DSCP CONSOLLE
 #iptables -t mangle -A POSTROUTING -s $DMZ -o ppp0 -j DSCP --set-dscp 45
 #QoS DSCP [read by Airmax]
-iptables -t mangle -A POSTROUTING -o ath0.100 -j DSCP --set-dscp 8
+iptables -t mangle -A POSTROUTING -o "ath0.$ADM_VLAN" -j DSCP --set-dscp 8
 iptables -t mangle -A POSTROUTING -o ppp0 -j DSCP --set-dscp 24
-iptables -t mangle -A POSTROUTING -o ath0.212 -j DSCP --set-dscp 48
+[[ $ctrl_netflix ]] && iptables -t mangle -A POSTROUTING -o "ath0.$NETFLIX_VLAN" -j DSCP --set-dscp 48 \	
+[[ $ctrl_voz ]] && iptables -t mangle -A POSTROUTING -o "ath0.$VOZ_VLAN" -j DSCP --set-dscp 48
+
 #iperf
 #iperf -s -D -B $IP_ADDR_ADM -f m
 #crond -b -c /etc/persistent/crontab
-#route voz/ip
-#route add -host 176.32.51.47 gw 10.35.46.1
+
 EOF
 
