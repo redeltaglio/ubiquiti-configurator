@@ -1,0 +1,90 @@
+cat << EOF > rc.poststart
+#!/bin/ash
+#version pppoed 2
+#----Vlan Database----
+VOZ_VLAN=212
+NETFLIX_VLAN=111
+#----------------------
+#----Layer 3 config----
+IP_ADDR_ADM=`/sbin/ifconfig ath0.100 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+NETWORK_LAN=`/usr/bin/ip route | grep eth0 | grep -v default | cut -d ' ' -f1`
+NETWORK_GW=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+DMZ=192.168.5.2
+#IP_ADDR_VOZ=10.35.46.84
+#NETMASK_VOZ=255.255.255.0
+#----------------------
+#vozip
+#ifconfig ath0.$VOZ_VLAN $IP_ADDR_VOZ netmask $NETMASK_VOZ
+#CoS bit
+vconfig set_egress_map ath0.100 0 1
+vconfig set_egress_map ath0.100 1 1
+vconfig set_egress_map ath0.100 2 1
+vconfig set_egress_map ath0.100 3 1
+vconfig set_egress_map ath0.100 4 1
+vconfig set_egress_map ath0.100 5 1
+vconfig set_egress_map ath0.100 6 1
+vconfig set_egress_map ath0.100 7 1
+vconfig set_egress_map ath0.212 0 6
+vconfig set_egress_map ath0.212 1 6
+vconfig set_egress_map ath0.212 2 6
+vconfig set_egress_map ath0.212 3 6
+vconfig set_egress_map ath0.212 4 6
+vconfig set_egress_map ath0.212 5 6
+vconfig set_egress_map ath0.212 6 6
+vconfig set_egress_map ath0.212 7 6
+vconfig set_egress_map ath0.950 0 3
+vconfig set_egress_map ath0.950 1 3
+vconfig set_egress_map ath0.950 2 3
+vconfig set_egress_map ath0.950 3 3
+vconfig set_egress_map ath0.950 4 3
+vconfig set_egress_map ath0.950 5 3
+vconfig set_egress_map ath0.950 6 3
+vconfig set_egress_map ath0.950 7 3
+vconfig set_egress_map ath0.2000 0 3
+vconfig set_egress_map ath0.2000 1 3
+vconfig set_egress_map ath0.2000 2 3
+vconfig set_egress_map ath0.2000 3 3
+vconfig set_egress_map ath0.2000 4 3
+vconfig set_egress_map ath0.2000 5 3
+vconfig set_egress_map ath0.2000 6 3
+vconfig set_egress_map ath0.2000 7 3
+#iptables
+iptables -F
+iptables -X
+iptables -t nat -F
+#FILTER
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+#WAN si necesario
+iptables -A INPUT -i ppp0 -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A INPUT -i ppp0 -j DROP
+#LAN
+iptables -A INPUT -s $NETWORK_LAN ! -d $NETWORK_GW -j DROP
+iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
+iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
+#iptables -A FORWARD -m state --state INVALID -j DROP
+iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
+iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
+iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
+#DSTNAT
+#iptables -t nat -A PREROUTING -p tcp -i ppp0 --dport 20080 -j DNAT --to 192.168.2.23
+#iptables -t nat -A PREROUTING -p udp -i ppp0 --dport 8000 -j DNAT --to 10.1.10.100
+#DMZ
+#iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
+#iptables -t nat -A PREROUTING -i ppp0  -p udp -j DNAT --to $DMZ
+#SRCNAT
+#configuracion VOZIP si necesaria
+#iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
+iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
+#DSCP CONSOLLE
+#iptables -t mangle -A POSTROUTING -s $DMZ -o ppp0 -j DSCP --set-dscp 45
+#QoS DSCP [read by Airmax]
+iptables -t mangle -A POSTROUTING -o ath0.100 -j DSCP --set-dscp 8
+iptables -t mangle -A POSTROUTING -o ppp0 -j DSCP --set-dscp 24
+iptables -t mangle -A POSTROUTING -o ath0.212 -j DSCP --set-dscp 48
+#iperf
+#iperf -s -D -B $IP_ADDR_ADM -f m
+#crond -b -c /etc/persistent/crontab
+#route voz/ip
+#route add -host 176.32.51.47 gw 10.35.46.1
+EOF
+
