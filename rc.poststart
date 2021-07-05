@@ -13,13 +13,13 @@ IP_ADDR_ADM=$(/sbin/ifconfig "ath0.$ADM_VLAN" | grep 'inet addr:' | cut -d: -f2 
 NETWORK_LAN=$(/usr/bin/ip route | grep eth0 | grep -v default | cut -d ' ' -f1)
 NETWORK_GW=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
 LAST_OCTET=$(echo $IP_ADDR_ADM | cut -d . -f4)
-if [[ $(ip link | grep -c $NETFLIX_VLAN) -eq 1 ]]; then
+if [[ $(/usr/bin/ip link | grep -c $NETFLIX_VLAN) -eq 1 ]]; then
 	ctrl_netflix=1
 	IP_ADDR_NETFLIX="172.16.23.$LAST_OCTET/24"
 	NETFLIX_GW="172.16.23.1"
 	NETFLIX_HOST="10.1.10.124"
 fi
-if [[ $(ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
+if [[ $(/usr/bin/ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
 	ctrl_voz=1
 	IP_ADDR_VOZ="172.16.113.$LAST_OCTET/24"
 	VOZ_GW="172.16.113.1"
@@ -27,87 +27,92 @@ fi
 #----------------------
 
 #others VLANs
-[[ $ctrl_netflix ]] && ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN" 
-[[ $ctrl_voz ]] && ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN"
+[[ $ctrl_netflix ]] && /usr/bin/ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN"
+[[ $ctrl_voz ]] && /usr/bin/ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN"
 #CoS bit
-vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 1 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 2 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 3 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 4 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 5 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 6 1
-vconfig set_egress_map "ath0.$ADM_VLAN" 7 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 1 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 2 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 3 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 4 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 5 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 6 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 7 1
 [[ $ctrl_netflix ]] && \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 0 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 1 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 2 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 3 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 4 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 5 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 6 6 \
-	vconfig set_egress_map "ath0.$NETFLIX_VLAN" 7 6
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 0 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 1 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 2 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 3 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 4 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 5 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 6 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 7 6
 [[ $ctrl_voz ]] && \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 0 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 1 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 2 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 3 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 4 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 5 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 6 6 \
-	vconfig set_egress_map "ath0.$VOZ_VLAN" 7 6
-vconfig set_egress_map "ath0.$DATA_VLAN" 0 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 1 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 2 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 3 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 4 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 5 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 6 3
-vconfig set_egress_map "ath0.$DATA_VLAN" 7 3
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 0 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 1 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 2 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 3 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 4 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 5 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 6 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 7 6
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 0 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 1 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 2 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 3 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 4 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 5 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 6 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 7 3
 
-#iptables
-iptables -F
-iptables -X
-iptables -t nat -F
-iptables -t mangle -F
+#/usr/bin/iptables
+
+/usr/bin/iptables  -t nat -F
+/usr/bin/iptables  -t mangle -F
+/usr/bin/iptables  -F
+/usr/bin/iptables  -X
+
 #FILTER
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+/usr/bin/iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 #WAN si necesario
-iptables -A INPUT -i ppp0 -p icmp --icmp-type echo-request -j ACCEPT
-iptables -A INPUT -i ppp0 -j DROP
+/usr/bin/iptables -A INPUT -i ppp0 -p icmp --icmp-type echo-request -j ACCEPT
+/usr/bin/iptables -A INPUT -i ppp0 -j DROP
 #LAN
-iptables -A INPUT -s $NETWORK_LAN ! -d $NETWORK_GW -j DROP
-iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
-iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
-#iptables -A FORWARD -m state --state INVALID -j DROP
-iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
-iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
-iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
+/usr/bin/iptables -A INPUT -s $NETWORK_LAN ! -d $NETWORK_GW -j DROP
+/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
+/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
+#/usr/bin/iptables -A FORWARD -m state --state INVALID -j DROP
+/usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
+/usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
+/usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
 #DSTNAT
-#iptables -t nat -A PREROUTING -p udp -i ppp0 --dport 8000 -j DNAT --to 10.1.10.100
+#/usr/bin/iptables -t nat -A PREROUTING -p udp -i ppp0 --dport 8000 -j DNAT --to 10.1.10.100
 #DMZ
-#iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
-#iptables -t nat -A PREROUTING -i ppp0  -p udp -j DNAT --to $DMZ
+#/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
+#/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p udp -j DNAT --to $DMZ
 #SRCNAT
 #configuracion VOZIP si necesaria
-#iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
-iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
+#/usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
+/usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
+[[ $ctrl_netflix ]] && /usr/bin/iptables -t nat -A POSTROUTING -s $NETFLIX_HOST -o "ath0.$NETFLIX_VLAN" -j MASQUERADE
 #MANGLE NETFLIX
 [[ $ctrl_netflix ]] && \
-	iptables -t mangle -A PREROUTING -s $NETFLIX_HOST -j MARK --set-mark "$NETFLIX_VLAN" \
-	ip rule add fwmark $NETFLIX_VLAN table netflix \
-	ip route add default via $NETFLIX_GW dev "ath0.$NETFLIX_VLAN" table netflix
+	/usr/bin/iptables -t mangle -A PREROUTING -s $NETFLIX_HOST -j MARK --set-mark "$NETFLIX_VLAN" && \
+	/usr/bin/ip rule add fwmark $NETFLIX_VLAN table $NETFLIX_VLAN && \
+	/usr/bin/ip route add default via $NETFLIX_GW dev "ath0.$NETFLIX_VLAN" table $NETFLIX_VLAN
 #DSCP CONSOLLE
-#iptables -t mangle -A POSTROUTING -s $DMZ -o ppp0 -j DSCP --set-dscp 45
+#/usr/bin/iptables -t mangle -A POSTROUTING -s $DMZ -o ppp0 -j DSCP --set-dscp 45
 #QoS DSCP [read by Airmax]
-iptables -t mangle -A POSTROUTING -o "ath0.$ADM_VLAN" -j DSCP --set-dscp 8
-iptables -t mangle -A POSTROUTING -o ppp0 -j DSCP --set-dscp 24
-[[ $ctrl_netflix ]] && iptables -t mangle -A POSTROUTING -o "ath0.$NETFLIX_VLAN" -j DSCP --set-dscp 48 \	
-[[ $ctrl_voz ]] && iptables -t mangle -A POSTROUTING -o "ath0.$VOZ_VLAN" -j DSCP --set-dscp 48
+/usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$ADM_VLAN" -j DSCP --set-dscp 8
+/usr/bin/iptables -t mangle -A POSTROUTING -o ppp0 -j DSCP --set-dscp 24
+[[ $ctrl_netflix ]] && /usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$NETFLIX_VLAN" -j DSCP --set-dscp 48 
+[[ $ctrl_voz ]] && /usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$VOZ_VLAN" -j DSCP --set-dscp 48
 
 #iperf
 #iperf -s -D -B $IP_ADDR_ADM -f m
 #crond -b -c /etc/persistent/crontab
 
 EOF
+chmod +x rc.poststart
+save
 
