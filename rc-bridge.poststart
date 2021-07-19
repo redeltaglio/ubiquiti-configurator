@@ -7,7 +7,32 @@ NETFLIX_VLAN=111
 DATA_VLAN=131
 VOZ_VLAN=213
 #----------------------
-
+if [[ $(/usr/bin/ip link | grep -c $NETFLIX_VLAN) -eq 1 ]]; then
+	ctrl_netflix=1
+fi
+if [[ $(/usr/bin/ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
+	ctrl_voz=1
+fi
+/usr/bin/ip link set mtu 1496 dev "ath0.$ADM_VLAN"
+/usr/bin/ip link set mtu 1496 dev "eth0.$ADM_VLAN"
+/usr/bin/ip link set mtu 1496 dev "ath0.$DATA_VLAN"
+/usr/bin/ip link set mtu 1496 dev "eth0.$DATA_VLAN"
+#others VLANs
+[[ $ctrl_netflix ]] && \ 
+	/usr/bin/ip link set mtu 1496 dev "eth0.$NETFLIX_VLAN" && \
+	/usr/bin/ip link set mtu 1496 dev "ath0.$NETFLIX_VLAN"
+[[ $ctrl_voz ]] && \
+	/usr/bin/ip link set mtu 1496 dev "eth0.$VOZ_VLAN" && \
+	/usr/bin/ip link set mtu 1496 dev "ath0.$VOZ_VLAN"
+#CoS bit
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 1 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 2 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 3 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 4 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 5 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 6 1
+/usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 7 1
 [[ $ctrl_netflix ]] && \
 	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 0 6 && \
 	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 1 6 && \
