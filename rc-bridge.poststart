@@ -1,0 +1,36 @@
+#!/bin/ash
+#version redama 0.1
+
+#----Vlan Database----
+ADM_VLAN=100
+NETFLIX_VLAN=111
+DATA_VLAN=131
+VOZ_VLAN=213
+#----------------------
+
+[[ $ctrl_netflix ]] && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 0 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 1 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 2 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 3 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 4 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 5 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 6 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$NETFLIX_VLAN" 7 6
+[[ $ctrl_voz ]] && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 0 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 1 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 2 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 3 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 4 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 5 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 6 6 && \
+	/usr/bin/vconfig set_egress_map "ath0.$VOZ_VLAN" 7 6
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 0 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 1 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 2 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 3 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 4 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 5 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 6 3
+/usr/bin/vconfig set_egress_map "ath0.$DATA_VLAN" 7 3

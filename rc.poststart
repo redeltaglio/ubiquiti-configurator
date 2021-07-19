@@ -1,4 +1,3 @@
-cat << EOF > rc.poststart
 #!/bin/ash
 #version redama 0.1
 
@@ -25,10 +24,15 @@ if [[ $(/usr/bin/ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
 	VOZ_GW="172.16.113.1"
 fi
 #----------------------
-
+/usr/bin/ip link set mtu 1496 dev "ath0.$ADM_VLAN"
+/usr/bin/ip link set mtu 1496 dev "ath0.$DATA_VLAN"
 #others VLANs
-[[ $ctrl_netflix ]] && /usr/bin/ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN"
-[[ $ctrl_voz ]] && /usr/bin/ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN"
+[[ $ctrl_netflix ]] && \ 
+	/usr/bin/ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN" && \
+	/usr/bin/ip link set mtu 1496 dev "ath0.$NETFLIX_VLAN"
+[[ $ctrl_voz ]] && \
+	/usr/bin/ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN" && \
+	/usr/bin/ip link set mtu 1496 dev "ath0.$VOZ_VLAN"
 #CoS bit
 /usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
 /usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 1 1
@@ -78,15 +82,15 @@ fi
 /usr/bin/iptables -A INPUT -i ppp0 -p icmp --icmp-type echo-request -j ACCEPT
 /usr/bin/iptables -A INPUT -i ppp0 -j DROP
 #LAN
-/usr/bin/iptables -A INPUT -s $NETWORK_LAN ! -d $NETWORK_GW -j DROP
 /usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
 /usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
 #/usr/bin/iptables -A FORWARD -m state --state INVALID -j DROP
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
+/usr/bin/iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 #DSTNAT
-#/usr/bin/iptables -t nat -A PREROUTING -p udp -i ppp0 --dport 8000 -j DNAT --to 10.1.10.100
+
 #DMZ
 #/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
 #/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p udp -j DNAT --to $DMZ
@@ -112,7 +116,4 @@ fi
 #iperf -s -D -B $IP_ADDR_ADM -f m
 #crond -b -c /etc/persistent/crontab
 
-EOF
-chmod +x rc.poststart
-save
 
