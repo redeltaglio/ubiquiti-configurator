@@ -28,10 +28,10 @@ fi
 /usr/bin/ip link set mtu 1496 dev "ath0.$DATA_VLAN"
 #others VLANs
 [[ $ctrl_netflix ]] && \ 
-	/usr/bin/ip addr add $IP_ADDR_NETFLIX dev "ath0.$NETFLIX_VLAN" && \
+	/usr/bin/ip addr add $IP_ADDR_NETFLIX brd + dev "ath0.$NETFLIX_VLAN" && \
 	/usr/bin/ip link set mtu 1496 dev "ath0.$NETFLIX_VLAN"
 [[ $ctrl_voz ]] && \
-	/usr/bin/ip addr add $IP_ADDR_VOZ dev "ath0.$VOZ_VLAN" && \
+	/usr/bin/ip addr add $IP_ADDR_VOZ dev brd + dev "ath0.$VOZ_VLAN" && \
 	/usr/bin/ip link set mtu 1496 dev "ath0.$VOZ_VLAN"
 #CoS bit
 /usr/bin/vconfig set_egress_map "ath0.$ADM_VLAN" 0 1
