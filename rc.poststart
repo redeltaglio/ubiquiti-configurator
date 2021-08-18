@@ -94,7 +94,8 @@ fi
 #LAN
 /usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
 /usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
-#/usr/bin/iptables -A FORWARD -m state --state INVALID -j DROP
+
+/usr/bin/iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 172.16.0.0/12 -j DROP
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
@@ -108,6 +109,7 @@ fi
 #SRCNAT
 #configuracion VOZIP si necesaria
 #/usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
+[[ $ctrl_voz ]] && -t nat -A POSTROUTING -s 10.1.10.3 -d 172.16.18.1 -o "ath0.$ADM_VLAN" -j SNAT --to-source $IP_ADDR_ADM
 /usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
 [[ $ctrl_voz ]] && /usr/bin/iptables -t nat -A POSTROUTING -s $VOZ_HOST -o "ath0.$VOZ_VLAN" -j MASQUERADE
 #MANGLE NETFLIX
