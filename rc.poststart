@@ -1,11 +1,18 @@
 #!/bin/ash
 #version redama 0.1
+#delete exact iptables rule: 
+#  iptables -t nat --line-numbers -L
+#  iptables -t nat -D PREROUTING LINE
+#
+#
+#
 
 #----Vlan Database----
 ADM_VLAN=100
 NETFLIX_VLAN=111
 DATA_VLAN=131
 VOZ_VLAN=213
+
 #----------------------
 #----Layer 3 config----
 IP_ADDR_ADM=$(/sbin/ifconfig "ath0.$ADM_VLAN" | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
@@ -22,6 +29,9 @@ if [[ $(/usr/bin/ip link | grep -c $VOZ_VLAN) -eq 1 ]]; then
 	ctrl_voz=1
 	IP_ADDR_VOZ="172.16.113.$LAST_OCTET/24"
 	VOZ_GW="172.16.113.1"
+	VOZ_HOST="10.1.10.13"
+	SIP_SERVER="185.8.244.80"
+	ADM_HOST="172.16.18.1"
 fi
 #----------------------
 /usr/bin/ip link set mtu 1496 dev "ath0.$ADM_VLAN"
@@ -90,7 +100,8 @@ fi
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 10.0.0.0/8 -j DROP
 /usr/bin/iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 #DSTNAT
-
+[[ $ctrl_voz ]] && /usr/bin/iptables -A PREROUTING -t nat -i ppp0 -p udp --src $SIP_SERVER --dport 5060 -j DNAT --to-destination 10.1.10.3:5060 && \
+	/usr/bin/iptables -A PREROUTING -t nat -i "ath0.$ADM_VLAN" -p tcp --src $ADM_HOST --dport 50080 -j DNAT --to-destination 10.1.10.3:80
 #DMZ
 #/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p tcp -j DNAT --to $DMZ
 #/usr/bin/iptables -t nat -A PREROUTING -i ppp0  -p udp -j DNAT --to $DMZ
@@ -98,6 +109,12 @@ fi
 #configuracion VOZIP si necesaria
 #/usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -d 176.32.51.47 -o ath0.$VOZ_VLAN -j SNAT --to-source $IP_ADDR_VOZ
 /usr/bin/iptables -t nat -A POSTROUTING -s $NETWORK_LAN -o ppp0 -j MASQUERADE
+[[ $ctrl_voz ]] && /usr/bin/iptables -t nat -A POSTROUTING -s $VOZ_HOST -o "ath0.$VOZ_VLAN" -j MASQUERADE
+#MANGLE NETFLIX
+[[ $ctrl_voz ]] && \
+	/usr/bin/iptables -t mangle -A PREROUTING -s $VOZ_HOST -j MARK --set-mark "$VOZ_VLAN" && \
+	/usr/bin/ip rule add fwmark $VOZ_VLAN table $VOZ_VLAN && \
+	/usr/bin/ip route add default via $VOZ_GW dev "ath0.$VOZ_VLAN" table $VOZ_VLAN
 [[ $ctrl_netflix ]] && /usr/bin/iptables -t nat -A POSTROUTING -s $NETFLIX_HOST -o "ath0.$NETFLIX_VLAN" -j MASQUERADE
 #MANGLE NETFLIX
 [[ $ctrl_netflix ]] && \
@@ -107,10 +124,11 @@ fi
 #DSCP CONSOLLE
 #/usr/bin/iptables -t mangle -A POSTROUTING -s $DMZ -o ppp0 -j DSCP --set-dscp 45
 #QoS DSCP [read by Airmax]
-/usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$ADM_VLAN" -j DSCP --set-dscp 8
-/usr/bin/iptables -t mangle -A POSTROUTING -o ppp0 -j DSCP --set-dscp 24
 [[ $ctrl_netflix ]] && /usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$NETFLIX_VLAN" -j DSCP --set-dscp 48 
-[[ $ctrl_voz ]] && /usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$VOZ_VLAN" -j DSCP --set-dscp 48
+[[ $ctrl_voz ]] && /usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$VOZ_VLAN" -j DSCP --set-dscp 48 && \
+	/usr/bin/iptables -t mangle -A POSTROUTING -o ppp0 -d $SIP_SERVER -j DSCP --set-dscp 48
+/usr/bin/iptables -t mangle -A POSTROUTING -o "ath0.$ADM_VLAN" -j DSCP --set-dscp 8
+/usr/bin/iptables -t mangle -A POSTROUTING -o ppp0 ! $SIP_SERVER -d -j DSCP --set-dscp 24
 
 #iperf
 #iperf -s -D -B $IP_ADDR_ADM -f m
