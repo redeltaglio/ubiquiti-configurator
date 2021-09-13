@@ -92,8 +92,8 @@ fi
 /usr/bin/iptables -A INPUT -i ppp0 -p icmp --icmp-type echo-request -j ACCEPT
 /usr/bin/iptables -A INPUT -i ppp0 -j DROP
 #LAN
-/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
-/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
+#/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 80 -j DROP
+#/usr/bin/iptables -A INPUT -s $NETWORK_LAN -p tcp --dport 22 -j DROP
 
 /usr/bin/iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 /usr/bin/iptables -A FORWARD -s $NETWORK_LAN -d 192.168.0.0/16 -j DROP
