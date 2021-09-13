@@ -1,0 +1,28 @@
+PREFIX=61
+TABLES=(1 33 44 49 59 61 81 91)
+TUNS=("tun1" "tun0" "tun3" "tun5" "tun4" "tun6" "tun2" "tun7")
+
+IFS=$'\n' SORTEDTUNS=($(sort <<<"${TUNS[*]}"))
+unset IFS
+
+getarrind() {
+	local -n arr=$2
+	counter=$(( "$3" + 0))
+	if [ "${1}" = "${arr[$counter]}" ]; then
+		echo $counter
+	else
+		(( counter = counter + 1))
+		if (( counter < ${#arr[@]} )); then getarrind "${1}" $2 $counter; fi;
+	fi
+}
+
+routemgmt () {
+	index=$(getarrind "${TUN_IFACE}" TUNS)
+	metric=$(getarrind "${TUN_IFACE}" SORTEDTUNS)
+	(( metric = metric + 1 ))
+	eval /sbin/ip route add table ${TABLES[$index]} default nexthop dev "${TUN_IFACE}"
+	for (( i=0; i<${#TABLES[@]}; i++ )); do
+				eval /sbin/ip route add table ${TABLES[$i]} metric $metric default nexthop  dev "${TUN_IFACE}"
+	done
+}
+
