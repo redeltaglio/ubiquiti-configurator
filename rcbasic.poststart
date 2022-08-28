@@ -1,0 +1,19 @@
+#!/bin/ash
+#version redama 0.1
+#delete exact iptables rule: 
+#  iptables -t nat --line-numbers -L
+#  iptables -t nat -D PREROUTING LINE
+#
+#
+#
+
+NETWORK_LAN=$(/usr/bin/ip route | grep eth0 | grep -v default | cut -d ' ' -f1)
+IP_LAN=$(/usr/bin/ip addr show dev eth0 | grep inet | awk '{print $2}' | cut -d \/ -f1)
+
+#/usr/bin/iptables
+
+/usr/bin/iptables -A MGMT -i eth0 -s $NETWORK_LAN -d $IP_LAN -p tcp --dport 22 -j DROP
+/usr/bin/iptables -A MGMT -i eth0 -s $NETWORK_LAN -d $IP_LAN -p tcp --dport 80 -j DROP
+
+
+
