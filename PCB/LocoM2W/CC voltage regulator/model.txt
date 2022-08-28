@@ -1,0 +1,6 @@
+Manufacter: Alpha&Omega semiconductor 
+Product number: AOZ1212
+Technology: https://en.wikipedia.org/wiki/Voltage_regulator
+BUS: SOIC 4
+
+
