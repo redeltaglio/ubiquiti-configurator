@@ -1,0 +1,10 @@
+Manufacter: MAGTEK 
+Product number: H16125SCGS
+Technology: 
+What are LAN transformers?
+A LAN (Local Area Network) transformer is a magnetics module designed to link the interface between the PHY (Physical Layer) transceiver and the RJ45 connector. A typical LAN circuit with the physical layer transceiver is shown in Figure 1.
+How do Ethernet transformers work?
+Image result for LAN-transformer
+The first transformer blocks DC and most static generated fields (from moving cables across the floor or people) , this means that DC currents are blocked and if you connect an ethernet to to different devices, they might be at different potentials but DC current will not pass between them.
+BUS: SOIC 16
+

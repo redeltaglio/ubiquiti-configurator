@@ -1,0 +1,31 @@
+cmp     - memory compare
+[.b, .w, .l] addr1 addr2 count
+    - compare memory
+crc32   - checksum calculation
+address count [addr]
+    - compute CRC32 checksum [save at addr]
+base    - print or set address offset
+    - print address offset for memory commands
+base off
+    - set address offset for memory commands to 'off'
+loop    - infinite loop on address range
+[.b, .w, .l] address number_of_objects
+    - loop on a set of addresses
+md      - memory display
+[.b, .w, .l] address [# of objects]
+    - memory display
+mm      - memory modify (auto-incrementing)
+[.b, .w, .l] address
+    - memory modify, auto increment address
+nm      - memory modify (constant address)
+[.b, .w, .l] address
+    - memory modify, read and keep address
+mw      - memory write (fill)
+[.b, .w, .l] address value [count]
+    - write memory
+mtest   - simple RAM test
+[start [end [pattern]]]
+    - simple RAM read/write test
+cp      - memory copy
+[.b, .w, .l] source target count
+    - copy memory
