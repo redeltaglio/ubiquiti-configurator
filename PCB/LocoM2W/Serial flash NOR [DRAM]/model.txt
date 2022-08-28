@@ -1,7 +1,0 @@
-Manufacter: Macronix 
-Product number: MX25L6408EMI-12G
-Technology: https://en.wikipedia.org/wiki/NOR_gate
-BUS: SPI SOIC 16
-Bus Technology: https://en.wikipedia.org/wiki/Serial_Peripheral_Interface
-Offline read/write: SOIC16 test forceps, SPI capable device.
-
