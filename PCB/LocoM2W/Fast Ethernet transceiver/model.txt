@@ -1,0 +1,7 @@
+Manufacter: Atheros  
+Product number: AR8032
+Technology: https://en.wikipedia.org/wiki/Fast_Ethernet
+BUS: MII
+Bus Technology: https://en.wikipedia.org/wiki/Media-independent_interface
+Offline read/write: impossible, need power to interact with uboot.
+
