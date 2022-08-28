@@ -80,3 +80,39 @@ ar7240> mii dump 0x 5
 
 ar7240> 
 
+ar7240> mii info
+Error reading info from the PHY
+PHY 0x01: OUI = 0x1374, Model = 0x02, Rev = 0x03,  10baseT, FDX
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+Error reading info from the PHY
+ar7240> 
+
+
