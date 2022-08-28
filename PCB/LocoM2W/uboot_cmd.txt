@@ -1,0 +1,81 @@
+Image at 9F050000:
+   Image Name:   MIPS Ubiquiti Linux-2.6.32.71
+   Created:      2021-08-18  16:31:47 UTC
+   Image Type:   MIPS Linux Kernel Image (lzma compressed)
+   Data Size:    979992 Bytes = 957 kB
+   Load Address: 80002000
+   Entry Point:  80002000
+   Verifying Checksum ... OK
+
+
+printf "%x\n" `stat -c "%s" openwrt-19.07.10-ar71xx-generic-ubnt-loco-m-xw-squashfs-factory.bin`
+erase 0xbf020000 +40019c
+ar7240> base
+Base Address: 0x00000000
+ar7240> bdinfo
+boot_params = 0x83F73FB0
+memstart    = 0x80000000
+memsize     = 0x04000000
+flashstart  = 0x9F000000
+flashsize   = 0x00800000
+flashoffset = 0x0002F6BC
+ethaddr     = 00:AA:BB:CC:DD:EE
+ip_addr     = 192.168.1.20
+baudrate    = 115200 bps
+ar7240> 
+
+ar7240> flinfo
+
+Bank # 1: mx25l64 (Id: 0xc22017)
+	Size: 8 MB in 128 sectors
+ar7240> 
+ar7240> iminfo
+
+## Checking Image at 81000000 ...
+   Bad Magic Number
+ar7240> imls
+Image at 9F050000:
+   Image Name:   MIPS Ubiquiti Linux-2.6.32.71
+   Created:      2021-08-18  16:31:47 UTC
+   Image Type:   MIPS Linux Kernel Image (lzma compressed)
+   Data Size:    979992 Bytes = 957 kB
+   Load Address: 80002000
+   Entry Point:  80002000
+   Verifying Checksum ... OK
+ar7240>
+
+bootdelay=1
+baudrate=115200
+ethaddr=0x00:0xaa:0xbb:0xcc:0xdd:0xee
+serverip=192.168.1.254 
+mtdids=nor0=ath-nor0
+ethact=eth0
+mtdparts=mtdparts=ath-nor0:256k(u-boot),64k(u-boot-env),1024k(kernel),6528k(rootfs),256k(cfg),64k(EEPROM)
+bootcmd=bootm 0x9f050000
+bootargs=console=tty0 root=31:03 rootfstype=squashfs init=/init 
+ipaddr=192.168.1.20 
+product=LM2
+stdin=serial
+stdout=serial
+stderr=serial
+ubntaddr=80200020
+appinitdone=true
+
+set 0x78:0x8A:0x20:0x12:0xB0:0x15
+
+Environment size: 428/65532 bytes
+
+ar7240> mtdparts
+
+device nor0 <ath-nor0>, # parts = 6
+ #: name			size		offset		mask_flags
+ 0: u-boot                	0x00040000	0x00000000	0			256KB
+ 1: u-boot-env            	0x00010000	0x00040000	0			 64KB
+ 2: kernel                	0x00100000	0x00050000	0		          1MB
+ 3: rootfs                	0x00660000	0x00150000	0			6.5MB	
+ 4: cfg                   	0x00040000	0x007b0000	0			256KB
+ 5: EEPROM                	0x00010000	0x007f0000	0
+
+active partition: nor0,0 - (u-boot) 0x00040000 @ 0x00000000
+
+
