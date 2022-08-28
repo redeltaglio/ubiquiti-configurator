@@ -1,0 +1,26 @@
+#!/usr/bin/kermit
+
+set line /dev/ttyACM0
+set speed 115200
+set serial 8n1
+set flow-control none
+set file type bin
+set carrier-watch off
+set prefixing all
+set modem none
+
+echo "Prepared to boot new kernel.  Reset the board now."
+input 60 "Hit any key to stop autoboot"
+output " "
+input 5 "ar7240>"
+# Here, 0x800000 is the memory address into which the kernel
+# should be loaded.
+#lineout "loadb 0x800000"
+# This should be the absolute path to your kernel uImage file.
+send /home/taglio/Work/redama/ubiquiti-configurator/PCB/firmware.bin
+#input 5 "u-boot>"
+#lineout "bootm 0x800000"
+
+# This command drops you into a console where you can interact
+# with the kernel.
+connect

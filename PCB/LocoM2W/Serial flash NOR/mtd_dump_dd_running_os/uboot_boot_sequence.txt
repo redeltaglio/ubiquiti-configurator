@@ -1,0 +1,1132 @@
+,<	T_5)
+@<	T_5)
+4<	T_5)
+<<	T_5)
+$Byh$Byx
+  !$Q1
+@ !'9>
+ !'9<4
+(!'9<4
+@ !'96X
+@8!'9h
+@8!'9h
+@0!'9{
+sr4Bif
+LI4BST
+L4BK@0
+ $c+ $
+e #$crp
+s27_wr_phy
+s27_rd_phy
+ag7240_miiphy_write_ex
+ag7240_miiphy_read_ex
+ag7240_get_ethaddr
+U-Boot 1.1.4-gb02ecccc (Feb 14 2020 - 10:53:11)
+mj>zjZ
+IiGM>nw
+athr8035_phy_speed
+athr8032_phy_speed
+ar8236_wr_phy
+ar8236_rd_phy
+verify
+Bad magic number
+Bad header crc
+Bad data crc
+Bad image type
+Empty Script
+## Executing script at %08lx
+autoscr
+autoscr - run script from memory
+[addr] - run script starting at addr - A valid autoscr header must be present
+%-12s= 0x%08lX
+boot_params
+memstart
+memsize
+flashstart
+flashsize
+flashoffset
+ethaddr     =
+%c%02X
+ip_addr     = 
+baudrate    = %d bps
+bdinfo
+bdinfo  - print Board Info structure
+Usage:
+## Board info at 0x%08lX ...
+go      - start application at address 'addr'
+addr [arg ...]
+    - start application at address 'addr'
+      passing 'arg' as arguments
+reset   - Perform RESET of the CPU
+Error: Bad gzipped data
+Error: gunzip out of data in header
+Error: inflateInit2() returned %d
+Error: inflate() returned %d
+   Image Name:   %.*s
+   Created:      %4d-%02d-%02d  %2d:%02d:%02d UTC
+   Image Type:   
+NetBSD
+Invalid OS
+VxWorks
+U-Boot
+Unknown OS
+Invalid CPU
+Intel x86
+MIPS 64 Bit
+PowerPC
+IBM S390
+SuperH
+SPARC 64 Bit
+Microblaze
+Nios-II
+Unknown Architecture
+Standalone Program
+Invalid Image
+Kernel Image
+RAMDisk Image
+Multi-File Image
+Firmware
+Script
+Unknown Image
+gzip compressed
+uncompressed
+bzip2 compressed
+lzma compressed
+unknown compression
+%s %s %s (%s)
+   Data Size:    %d Bytes = 
+   Load Address: %08x
+   Entry Point:  %08x
+   Contents:
+   Image %d: %8ld Bytes = 
+Image at %08lX:
+   Verifying Checksum ... 
+   Bad Data CRC
+## Checking Image at %08lx ...
+   Bad Magic Number
+   Bad Header Checksum
+bootcmd
+## Booting image at %08lx ...
+Bad Magic Number
+Bad Header Checksum
+   Verifying Checksum at 0x%p ...
+Bad Data CRC
+Unsupported Architecture 0x%x
+Standalone Application
+Wrong Image Type for %s command
+   XIP %s ... 
+   Uncompressing %s ... 
+GUNZIP ERROR - must RESET board to recover
+LZMA ERROR %d - must RESET board to recover
+Unimplemented compression type %d
+autostart
+filesize
+Can't boot image type %d
+bootargs
+## Transferring control to NetBSD stage-2 loader (at address %08lx) ...
+## Transferring control to RTEMS (at address %08lx) ...
+bootm   - boot application image from memory
+[addr [arg ...]]
+    - boot application image stored in memory
+	passing arguments 'arg ...'; when booting a Linux kernel,
+	'arg' can be the address of an initrd image
+boot    - boot default, i.e., run 'bootcmd'
+bootd   - boot default, i.e., run 'bootcmd'
+iminfo
+iminfo  - print header information for application image
+addr [addr ...]
+    - print header information for application image starting at
+      address 'addr' in memory; this includes verification of the
+      image contents (magic number, header and payload checksums)
+imls    - list all images found in flash
+    - Prints information about all images found at sector
+      boundaries in flash.
+List of available devices:
+%-8s %08x %c%c%c 
+coninfo
+coninfo - print console devices and information
+Error: end address not on sector boundary
+Error: end sector precedes start sector
+Error: start address not on sector boundary
+Error: cannot span across banks when they are mapped in reverse order
+%sProtected %d sectors
+Error: start and/or end address not on sector boundary
+Error: end address (0x%08lx) not in flash!
+%sProtect Flash Bank # %ld
+Bad sector specification
+%sProtect Flash Sectors %d-%d in Bank # %d
+%sProtect Flash Parition %s, bank %d, 0x%08lx - 0x%08lx
+cannot %sprotect, not a NOR device
+Only FLASH Banks # 1 ... # %d supported
+missing or unknown FLASH type
+Bad address format
+Erased %d sectors
+Erase Flash Bank # %ld 
+Erase Flash Sectors %d-%d in Bank # %d 
+Erase Flash Parition %s, bank %d, 0x%08lx - 0x%08lx 
+cannot erase, not a NOR device
+Bank # %ld: 
+flinfo
+flinfo  - print FLASH memory information
+    - print information for all FLASH memory banks
+flinfo N
+    - print information for FLASH memory bank # N
+protect
+protect - enable or disable FLASH write protection
+on  start end
+    - protect FLASH from addr 'start' to addr 'end'
+protect on start +len
+    - protect FLASH from addr 'start' to end of sect w/addr 'start'+'len'-1
+protect on  N:SF[-SL]
+    - protect sectors SF-SL in FLASH bank # N
+protect on  bank N
+    - protect FLASH bank # N
+protect on <part-id>
+    - protect partition
+protect on  all
+    - protect all FLASH banks
+protect off start end
+    - make FLASH from addr 'start' to addr 'end' writable
+protect off start +len
+    - make FLASH from addr 'start' to end of sect w/addr 'start'+'len'-1 wrtable
+protect off N:SF[-SL]
+    - make sectors SF-SL writable in FLASH bank # N
+protect off bank N
+    - make FLASH bank # N writable
+protect off <part-id>
+    - make partition writable
+protect off all
+    - make all FLASH banks writable
+erase   - erase FLASH memory
+start end
+    - erase FLASH from addr 'start' to addr 'end'
+erase start +len
+    - erase FLASH from addr 'start' to the end of sect w/addr 'start'+'len'-1
+erase N:SF[-SL]
+    - erase sectors SF-SL in FLASH bank # N
+erase bank N
+    - erase FLASH bank # N
+erase <part-id>
+    - erase partition
+erase all
+    - erase all FLASH banks
+Unknown operator '%s'
+Invalid data width specifier
+itest	- return true/false on integer compare
+[.b, .w, .l, .s] [*]value1 <op> [*]value2
+invalid partition number %d for device %s%d (%s)
+%s: offset %08lx beyond flash size %08lx
+%s%d: partition (%s) size too big
+%s: partitioning exceeds flash size
+%s%d: partition (%s) start offset alignment incorrect
+%s%d: partition (%s) size alignment incorrect
+mtddevnum
+mtddevname
+%s%d,%d
+partition
+cannot add second partition at offset 0
+invalid mtd device '%.*s'
+partition size too small (%lx)
+no closing ) found in partition name
+empty partition name
+no partitions allowed after a fill-up partition
+unexpected character '%c' at the end of partition
+out of memory
+0x%08lx@0x%08lx
+no partitions for device %s%d (%s)
+unexpected character '%c' at the end of device
+incorrect device type in %s
+incorrect device number in %s
+no partition number specified
+unexpected trailing character '%c'
+no such device %s%d
+no such partition
+mtdparts=
+mtdparts
+mtdids
+nor0=ath-nor0
+mtdids too long (> %d)
+mtdparts variable not set, see 'help mtdparts'
+mtdparts too long (> %d)
+mtdids: incorrect <dev-num>
+no such FLASH device: %s%d (valid range 0 ... %d
+support for NAND devices not present
+mtdids: no <mtd-id> identifier
+device id %s%d redefined, please correct mtdids variable
+could not initialise device list
+mtdparts variable doesn't start with 'mtdparts='
+device %s%d redefined, please correct mtdparts variable
+mtdparts_init: no valid partitions
+default
+delall
+device %s%d <%s>, # parts = %d
+ #: name			size		offset		mask_flags
+ %d: %-22s	0x%08x	0x%08x	%d
+no partitions defined
+active partition: %s%d,%d - (%s) 0x%08lx @ 0x%08lx
+could not get current partition info
+defaults:
+mtdids  : %s
+mtdparts: %s
+mtdparts=ath-nor0:256k(u-boot),64k(u-boot-env),1024k(kernel),6528k(rootfs),256k(cfg),64k(EEPROM)
+no such device %s defined in mtdids variable
+too long partition description
+%s:%s(%s)%s
+generated mtdparts too long, reseting to null
+current partition deleted, resetting current to 0
+partition %s not found
+mtdparts- define flash/nand partitions
+    - list partition table
+mtdparts delall
+    - delete all partitions
+mtdparts del part-id
+    - delete partition (e.g. part-id = nand0,1)
+mtdparts add <mtd-dev> <size>[@<offset>] [<name>] [ro]
+    - add partition
+mtdparts default
+    - reset partition table to defaults
+this command uses three environment variables:
+'partition' - keeps current partition identifier
+partition  := <part-id>
+<part-id>  := <dev-id>,part_num
+'mtdids' - linux kernel mtd device id <-> u-boot device id mapping
+mtdids=<idmap>[,<idmap>,...]
+<idmap>    := <dev-id>=<mtd-id>
+<dev-id>   := 'nand'|'nor'<dev-num>
+<dev-num>  := mtd device number, 0...
+<mtd-id>   := unique device tag used by linux kernel to find mtd device (mtd->name)
+'mtdparts' - partition list
+mtdparts=mtdparts=<mtd-def>[;<mtd-def>...]
+<mtd-def>  := <mtd-id>:<part-def>[,<part-def>...]
+<mtd-id>   := unique device tag used by linux kernel to find mtd device (mtd->name)
+<part-def> := <size>[@<offset>][<name>][<ro-flag>]
+<size>     := standard linux memsize OR '-' to denote all remaining space
+<offset>   := partition start offset within the device
+<name>     := '(' NAME ')'
+<ro-flag>  := when set to 'ro' makes partition read-only (not used, passed to kernel)
+Base Address: 0x%08lx
+CRC32 for %08lx ... %08lx ==> %08lx
+Pattern %08lX  Writing...%12s
+Reading...
+Mem error @ 0x%08X: found %08lX, expected %08lX
+Zero length ???
+Copy to Flash... 
+word at 0x%08lx (0x%08lx) != word at 0x%08lx (0x%08lx)
+halfword at 0x%08lx (0x%04x) != halfword at 0x%08lx (0x%04x)
+byte at 0x%08lx (0x%02x) != byte at 0x%08lx (0x%02x)
+halfword
+Total of %ld %s%s were the same
+%08lx:
+cmp     - memory compare
+[.b, .w, .l] addr1 addr2 count
+    - compare memory
+crc32   - checksum calculation
+address count [addr]
+    - compute CRC32 checksum [save at addr]
+base    - print or set address offset
+    - print address offset for memory commands
+base off
+    - set address offset for memory commands to 'off'
+loop    - infinite loop on address range
+[.b, .w, .l] address number_of_objects
+    - loop on a set of addresses
+md      - memory display
+[.b, .w, .l] address [# of objects]
+    - memory display
+mm      - memory modify (auto-incrementing)
+[.b, .w, .l] address
+    - memory modify, auto increment address
+nm      - memory modify (constant address)
+[.b, .w, .l] address
+    - memory modify, read and keep address
+mw      - memory write (fill)
+[.b, .w, .l] address value [count]
+    - write memory
+mtest   - simple RAM test
+[start [end [pattern]]]
+    - simple RAM read/write test
+cp      - memory copy
+[.b, .w, .l] source target count
+    - copy memory
+%u.     (%04hx)                 -- %s --
+  (%04hx:%04hx) %u.
+%2u,%2u =   b%u%u    speed selection = %s Mbps
+%2u    = %5u    duplex = %s
+IEEE 802.3
+IEEE 802.9 ISLAN-16T
+%2u-%2u = %5u    selector = %s
+%2u-%2u =     %u    selector = %s
+%2u   
+%2u-%2u
+ = %5u    %s
+Serno out of range
+product id out of range %d
+PHY 0x%02X: OUI = 0x%04X, Model = 0x%02X, Rev = 0x%02X, %3dbaseT, %s
+Error reading info from the PHY
+Error reading from the PHY addr=%02x reg=%02x
+addr=%02x reg=%02x data=
+Error writing to the PHY addr=%02x reg=%02x
+The MII dump command only formats the standard MII registers, 0-5.
+PHY control register
+PHY status register
+PHY ID 1 register
+PHY ID 2 register
+Autonegotiation advertisement register
+Autonegotiation partner abilities register
+loopback
+speed selection
+A/N enable
+power-down
+isolate
+restart A/N
+duplex
+collision test enable
+(reserved)
+100BASE-T4 able
+100BASE-X  full duplex able
+100BASE-X  half duplex able
+10 Mbps    full duplex able
+10 Mbps    half duplex able
+100BASE-T2 full duplex able
+100BASE-T2 half duplex able
+extended status
+MF preamble suppression
+A/N complete
+remote fault
+A/N able
+link status
+jabber detect
+extended capabilities
+OUI portion
+manufacturer part number
+manufacturer rev. number
+next page able
+reserved
+asymmetric pause
+pause enable
+100BASE-TX full duplex able
+100BASE-TX able
+10BASE-T   full duplex able
+10BASE-T   able
+xxx to do
+acknowledge
+asymmetric pause able
+pause able
+100BASE-X full duplex able
+10BASE-T full duplex able
+10BASE-T able
+mii     - MII utility commands
+device                     - list available devices
+mii device <devname>           - set current device
+mii info   <addr>              - display MII PHY info
+mii read   <addr> <reg>        - read  MII PHY <addr> register <reg>
+mii write  <addr> <reg> <data> - write MII PHY <addr> register <reg>
+mii dump   <addr> <reg>        - pretty-print <addr> <reg> (0-5 only)
+Addr and/or reg may be ranges, e.g. 2-7.
+progmac
+progmac - Set ethernet MAC addresses
+progmac <serno> [<product_id>] - Program the MAC addresses
+                <serno> is the value of the last
+                4 digits (decimal) of the serial number.
+                Optional parameter <product_id> specifies
+                the board's product ID (decimal)
+sleep   - delay execution for some time
+    - delay execution for N seconds (N is _decimal_ !!!)
+ping failed; host %s is not alive
+host %s is alive
+loadaddr
+gatewayip
+netmask
+hostname
+rootpath
+ipaddr
+serverip
+domain
+Automatic boot of image at addr 0x%08lX ...
+Boot loader overwrite mode
+Using environment IP
+autoload
+urescue
+bootp	- boot image via network using BootP/TFTP protocol
+[loadAddress] [bootfilename]
+rarpboot
+rarpboot- boot image via network using RARP/TFTP protocol
+tftpboot
+tftpboot- boot image via network using TFTP protocol
+dhcp	- invoke DHCP client to obtain IP/boot params
+nfs	- boot image via network using NFS protocol
+[loadAddress] [host ip addr:bootfilename]
+urescue	- start TFTP server and wait for firmware
+[-f] full, update bootloader too
+[-e] use environment ip 
+ping	- send ICMP ECHO_REQUEST to network host
+pingAddress
+Saving Environment to %s...
+serial#
+ethaddr
+Can't overwrite "%s"
+stdout
+stderr
+Can't delete "%s"
+baudrate
+## Baudrate %d bps not supported
+## Switch baudrate to %d bps and press ENTER ...
+## Error: environment overflow, "%s" deleted
+bootfile
+setenv
+ ** Abort
+Environment size: %d/%d bytes
+## Error: "%s" not defined
+printenv
+printenv- print environment variables
+    - print values of all environment variables
+printenv name ...
+    - print value of environment variable 'name'
+setenv  - set environment variables
+name value ...
+    - set environment variable 'name' to 'value ...'
+setenv name
+    - delete environment variable 'name'
+saveenv
+saveenv - save environment variables to persistent storage
+run     - run commands in an environment variable
+var [...]
+    - run the commands in the environment variable(s) 'var'
+Mass storage controller
+Build before PCI Rev2.0
+Network controller
+Display controller
+Multimedia device
+Memory controller
+Bridge device
+Simple comm. controller
+Base system peripheral
+Input device
+Docking station
+Processor
+Serial bus controller
+Intelligent controller
+Satellite controller
+Cryptographic device
+Does not fit any class
+  vendor ID =                   0x%.4x
+  device ID =                   0x%.4x
+  command register =            0x%.4x
+  status register =             0x%.4x
+  revision ID =                 0x%.2x
+  class code =                  0x%.2x (%s)
+  sub class code =              0x%.2x
+  programming interface =       0x%.2x
+  cache line =                  0x%.2x
+  latency time =                0x%.2x
+  header type =                 0x%.2x
+  BIST =                        0x%.2x
+  base address 0 =              0x%.8x
+  base address 1 =              0x%.8x
+  base address 2 =              0x%.8x
+  base address 3 =              0x%.8x
+  base address 4 =              0x%.8x
+  base address 5 =              0x%.8x
+  cardBus CIS pointer =         0x%.8x
+  sub system vendor ID =        0x%.4x
+  sub system ID =               0x%.4x
+  expansion ROM base address =  0x%.8x
+  interrupt line =              0x%.2x
+  interrupt pin =               0x%.2x
+  min Grant =                   0x%.2x
+  max Latency =                 0x%.2x
+  primary bus number =          0x%.2x
+  secondary bus number =        0x%.2x
+  subordinate bus number =      0x%.2x
+  secondary latency timer =     0x%.2x
+  IO base =                     0x%.2x
+  IO limit =                    0x%.2x
+  secondary status =            0x%.4x
+  memory base =                 0x%.4x
+  memory limit =                0x%.4x
+  prefetch memory base =        0x%.4x
+  prefetch memory limit =       0x%.4x
+  prefetch memory base upper =  0x%.8x
+  prefetch memory limit upper = 0x%.8x
+  IO base upper 16 bits =       0x%.4x
+  IO limit upper 16 bits =      0x%.4x
+  bridge control =              0x%.4x
+  capabilities =                0x%.2x
+  CardBus number =              0x%.2x
+  CardBus latency timer =       0x%.2x
+  CardBus memory base 0 =       0x%.8x
+  CardBus memory limit 0 =      0x%.8x
+  CardBus memory base 1 =       0x%.8x
+  CardBus memory limit 1 =      0x%.8x
+  CardBus IO base 0 =           0x%.4x
+  CardBus IO base high 0 =      0x%.4x
+  CardBus IO limit 0 =          0x%.4x
+  CardBus IO limit high 0 =     0x%.4x
+  CardBus IO base 1 =           0x%.4x
+  CardBus IO base high 1 =      0x%.4x
+  CardBus IO limit 1 =          0x%.4x
+  CardBus IO limit high 1 =     0x%.4x
+  subvendor ID =                0x%.4x
+  subdevice ID =                0x%.4x
+  PC Card 16bit base address =  0x%.8x
+unknown header
+0x%.4x     0x%.4x     %-23s 0x%.2x
+Scanning PCI devices on bus %d
+BusDevFun  VendorId   DeviceId   Device Class       Sub-Class
+_____________________________________________________________
+%02x.%02x.%02x   
+Found PCI device %02x.%02x.%02x:
+pci     - list and access PCI Configuration Space
+[bus] [long]
+    - short or long list of PCI devices on bus 'bus'
+pci header b.d.f
+    - show header of PCI device 'bus.device.function'
+pci display[.b, .w, .l] b.d.f [address] [# of objects]
+    - display PCI configuration space (CFG)
+pci next[.b, .w, .l] b.d.f address
+    - modify, read and keep CFG address
+pci modify[.b, .w, .l] b.d.f address
+    -  modify, auto increment CFG address
+pci write[.b, .w, .l] b.d.f address value
+    - write to CFG address
+Read Reg: 0x%08x = 0x%08x
+Write Reg: 0x%08x: Oldval = 0x%08x Newval = 0x%08x
+ethreg
+ethreg    - S26 PHY Reg rd/wr  utility
+<p> <phyaddr> <reg> <value> - Send <bit_len> bits from <dout> out the SPI
+<p>  - operates on the phy; by default is rd/wr s26 mac registers
+<phyaddr> - Address of the phy
+<reg>    - Register offset
+<value>  - value to write
+Erasing flash setting
+pll 0x%x 0x%x 0x%x 0x%x 0x%x
+Setting 0x%x 0x%x 0x%x 0x%x 0x%x
+srifpll 0x%x 0x%x
+Setting 0x%x 0x%x
+pll cpu-pll dither ddr-pll dither - Set to change CPU & DDR speed
+pll erase
+pll get
+srifpll
+srifpll cpu-pll ddr-pll - To change CPU & DDR speed through srif
+srifpll erase
+srifpll get
+- No help available.
+Unknown command '%s' - try 'help' without arguments for list of all known commands
+version
+version - print monitor version
+echo    - echo args to console
+[args..]
+    - echo args to console; \c suppresses newline
+help    - print online help
+[command ...]
+    - show help information (for 'command')
+'help' prints online help for the monitor commands.
+Without arguments, it prints a short usage message for all commands.
+To get detailed help information for specific commands you can type
+'help' with one or more command names as arguments.
+?       - alias for 'help'
+Cannot initialize the list of devices!
+serial
+*** Warning - bad CRC, using default environment
+***           saving default environment ...
+Erasing Flash...
+Writing to Flash... 
+MII devices: 
+Current device: '%s'
+NULL device name!
+No such device: %s
+PHY_BMSR read failed, assuming no link
+PHY duplex read failed, assuming half duplex
+PHY AN duplex read failed, assuming half duplex
+PHY speed read failed, assuming 10bT
+PHY AN speed read failed, assuming 10bT
+PHY reset timed out
+miiphy_register: non unique device name '%s'
+miiphy_register: cannot allocate memory for '%s'
+Timeout writing to Flash
+Flash not Erased
+Can't write to protected Flash sectors
+Outside available Flash
+Start and/or end address not on sector boundary
+Unknown Vendor of Flash
+Unknown Type of Flash
+General Flash Programming Error
+%s[%d] FIXME: rc=%d
+flash.c
+## Command too long!
+** Too many args (max. %d) **
+Unknown command '%s' - try 'help'
+'bootd' recursion detected
+bootdelay
+tftpboot 0x8022c090 uImage; bootm 0x8022c090
+Hit any key to stop autoboot: %2d 
+Boot failed: resetting...
+*** reset failed ***
+ar7240> 
+<INTERRUPT>
+go ${ubntaddr} ushowbootprogress %d
+write addr: %x
+(Id: 0x%06x)
+	Size: %ld MB in %d sectors
+m25p32
+m25p64
+m25p128
+mx25l32
+mx25l64
+mx25l128
+s25sl032a
+s25sl064a
+s33_32M
+s33_64M
+w25x32
+w25x64
+w25q64
+w25q128
+n25q064
+ERROR:%s failed:phy:%d reg%X
+ERROR:%s failed:phy:%d reg:%X rddata:%X
+Unkown speed read!
+flash size %dMB, sector count = %d
+Resetting...
+ERROR:%s:%d transaction failed
+Error!!! Leave ag7240_miiphy_write without polling correct status!
+Error!!! Leave ag7240_miiphy_read without polling correct status!
+Can't allocate fifos
+Tx Timed out
+Invalid speed detected
+malloc failed
+%s: unknown ethernet device %s
+No valid address in Flash. Using fixed address
+### ERROR ### Please RESET the board ###
+DRAM:  
+Flash: 
+(0x%x, 0x%x, 0x%x)
+go ${ubntaddr} uappinit
+go ${ubntaddr} umisc_init_r
+Net:   
+go ${ubntaddr} umisc_init_end_r %d
+*** failed ***
+## Loading Ramdisk Image at %08lx ...
+No Linux MIPS Ramdisk Image
+REVISIONID
+virian
+python
+mem=%luM
+ubntbootid
+ubntbootid=%s
+0x%08X
+initrd_start
+initrd_size
+flash_start
+flash_size
+Starting kernel ...
+pci_hose_bus_to_phys: %s
+invalid hose
+invalid physical address
+pci_hose_phys_to_bus: %s
+pci_bus_to_hose() failed
+%d.%d.%d.%d
+## Warning: gatewayip needed but not set
+bad length %d < %d
+invalid RARP header
+len bad %d < %d
+ ICMP Host Redirect to 
+netretry
+ARP Retry count exceeded; starting again
+ethact
+192.168.1.20
+Setting default IP 
+*** ERROR: ping address not given
+*** ERROR: `serverip' not set
+*** ERROR: `ipaddr' not set
+*** ERROR: No ethernet found.
+*** ERROR: `ethaddr' not set
+*** ERROR: `eth%daddr' not set
+Using %s device
+Bytes transferred = %ld (%lx hex)
+fileaddr
+timeout
+File too large
+File has bad magic
+%02lX%02lX%02lX%02lX.img
+*** Warning: no boot file name; using '%s'
+TFTP from server 
+; our IP address is 
+; sending through gateway 
+Filename '%s'.
+ Size is 0x%x Bytes = 
+Load address: 0x%lx
+Loading: *
+Retry count exceeded; starting again
+	 %lu MB reveived
+TFTP error: First block is not block 1 (%ld)
+Starting again
+TFTP error: '%s' (%d)
+Starting again
+Starting TFTP server...
+Using %s 
+), address: 
+go ${ubntaddr} uhandlereset
+Waiting for connection: *
+Client requested data block outside available data! (#%d)
+blksize%c%d%c
+Firmware check failed
+Ignoring packet to port %d, now using port %d
+Receiving file from %d.%d.%d.%d:%d
+Using port %d
+blksize
+flash_dump
+devinfo
+go ${ubntaddr} ugetbid
+platform=%s
+duration=%d
+Ignoring GET attempt for unknown file: <%s>
+Sending <%s> (0x%08X@0x%08X) to %d.%d.%d.%d:%d
+File transfer completed successfuly.
+Received %d bytes
+go ${ubntaddr} ucheck_fw %x %x
+Firmware check failed! (%d)
+go ${ubntaddr} uupdate_fw %x %x %d
+*** WARNING: %s is too long (%d - max: %d) - truncated
+Host Name
+Root Path
+Opt Boot File
+*** WARNING: using vendor optional boot file
+*** Unhandled DHCP Option in OFFER/ACK: %d
+BOOTP broadcast %d
+DHCP client bound to address 
+DHCP: INVALID STATE
+RARP broadcast %d
+unknown
+No ethernet found.
+ethprime
+ [PRIME]
+eth%daddr
+Timeout
+/nfsroot/%02lX%02lX%02lX%02lX.img
+File transfer via NFS from server 
+Filename '%s/%s'.
+Load address: 0x%lx
+Loading: *
+*** ERROR: Cannot mount
+*** ERROR: Cannot umount
+*** ERROR: File lookup fail
+*** ERROR: Symlink fail
+%s.v%s.
+XW.ar934x
+1.0.0-recovery
+gb02ecccc
+product
+Unknown
+ - TFTP recovery
+Sending discovery response
+ %cB%s
+0123456789abcdefghijklmnopqrstuvwxyz
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+<NULL>
+unknown compression method
+invalid window size
+invalid reserved bit
+incorrect header check
+invalid block type
+invalid stored block lengths
+too many length or distance symbols
+oversubscribed dynamic bit lengths tree
+incomplete dynamic bit lengths tree
+invalid bit length repeat
+oversubscribed literal/length tree
+incomplete literal/length tree
+invalid distance code
+invalid literal/length code
+incorrect data check
+stream end
+file error
+stream error
+data error
+insufficient memory
+buffer error
+Stream with EOS marker is not supported
+Too big uncompressed stream
+Incorrect stream properties
+Decoding error = %d
+Not enough buffer for decompression
+ERROR, %s, %d
+LzmaDecode.c
+ERROR: %s, %d
+ *WARNING*: UBNT APP Magic mismatch, addr=%x, magic=%x 
+ubntaddr
+0123456789
+%s: enter athr8035_phy_is_up!
+ATHR8035
+%s: phy unit %d not found !
+%s: athr8035 Link up! 
+%s: athr8035 Link down! 
+AR8035
+0x%02x=0x%04x  
+DEBUG 0x%02x: %04x
+%s: enter athr8035_phy_speed!
+%s status = 0x%08x
+%s RESOLVED
+%s *NOT* RESOLVED
+%s SMARTSPEED DOWNGRADE
+%s RECEIVE PAUSE ENABLED
+%s RECEIVE PAUSE DISABLED
+%s POLARITY REVERSED
+%s POLARITY NORMAL
+%s JABBER
+%s NO JABBER
+%s TRANSMIT PAUSE ENABLED
+%s TRANSMIT PAUSE DISABLED
+%s LINK UP
+%s LINK DOWN
+%s FULL DUPLEX
+%s HALF DUPLEX
+%s MDI
+%s MDIX
+%s speed is 10 Mbps
+%s speed is 100 Mbps
+%s speed is 1000 Mbps
+%s speed is unknown
+%s: enter athr8035_phy_is_fdx!
+WARNING: Unsupported AHB frequency, %d.  10baseT clock may be wrong.
+ethdebug
+%s: enter athr8035_phy_setup (MAC unit %d)!
+No phy found for unit %d
+%s: Port %d, Negotiation Success
+%s: enter athr8032_phy_is_up!
+ATHR8032
+%s: athr8032 Link up!
+%s: athr8032 Link down!
+DEBUG 0x%02x: %04x [Test Config 10Base-T]
+DEBUG 0x%02x: %04x [Test Config 100Base-T]
+DEBUG 0x%02x: %04x [Hibernate Control]
+DEBUG 0x%02x: %04x [Power Saving Control]
+%s: enter athr8032_phy_speed!
+%s: ERROR: PHY unit %d not found !
+%s: enter athr8032_phy_is_fdx!
+%s: enter athr8032_phy_setup.  MAC unit %d!
+%s: ERROR: No PHY found for unit %d
+AR8032 Detected
+AR8236
+%s: ERROR: MDIO_BUSY status never cleared.
+bootargs=console=tty0 root=31:03 rootfstype=squashfs init=/init
+bootcmd=bootm 0x9f050000
+bootdelay=1
+baudrate=115200
+ethaddr=00:15:6d:0d:00:00
+ipaddr=192.168.1.20
+serverip=192.168.1.254
+        
+AAAAAA
+BBBBBB
+` !'99 
+mtdparts=ath-nor0:
+256k(u-boot),64k(u-boot-env),1024k(kernel),6528k(rootfs),256k(cfg),64k(EEPROM)
+ubnt_uwrite
+mj>zjZ
+IiGM>nw
+         (((((                  
+AAAAAA
+BBBBBB
+appinitdone
+ Invalid command, argc=%d 
+uappinit
+ Initialize the APP first 
+usetbrev
+usetmac
+uclearenv
+uclearcfg
+ushowbootprogress
+usetrd
+usetbid
+usetdfs
+ucheckboard
+umisc_init_r
+umisc_init_end_r
+uhandlereset
+uwrite
+uprintenv
+usetenv
+usaveenv
+uupdate_fw
+ucheck_fw
+ugetbid
+usetprotect
+u-boot-env
+u-boot-env is invalid, overiding with default.
+%dk(%s),
+mtdparts
+Firmware check fail
+Setting U-Boot environment variables
+bootcmd
+bootm 0x9f050000
+bootargs
+console=ttyS0,115200 root=31:03 rootfstype=squashfs init=/init
+console=tty0 root=31:03 rootfstype=squashfs init=/init
+ipaddr
+192.168.1.20
+Warning: mtdparts_init() failed! (check mtdparts variable?)
+u-boot
+Will not overwrite u-boot partition! Skipped.
+Copying partition '%s' to flash memory:
+Error occured while flashing partition '%s'! (%d)
+Firmware update complete.
+ RSA Signed Image. Verifying please wait... 
+ Signature authentication failed 
+ Image Signature Verified, Success.
+Bad signature CRC!
+Bad signature!
+Firmware Version: %s
+RSA key words %u exceeds maximum %d
+Signature is of incorrect length %d
+Signature length %u exceeds maximum %d
+In RSAVerify(): Padding check failed!
+In RSAVerify(): Hash check failed!
+ Decrypted Hash: 
+ Image Hash:     
+(Id: 0x%06x)
+	Size: %ld MB in %d sectors
+flash size %dMB, sector count = %d
+Unrecognized flash 0x%06x
+write addr: %x
+First %#x last %#x sector size %#x
+m25p32
+m25p64
+m25p128
+mx25l32
+mx25l64
+mx25l128
+s25sl032a
+s25sl064a
+s25fl064k
+s25fl128k
+s33_64M
+w25x64
+w25q64
+w25q128
+n25q064
+n25q128
+en25qh64
+en25qh128
+Invalid MAC address
+cpu srif 
+cpu apb 
+ddr srif 
+ddr apb 
+cpu %u ddr %u ahb %u
+fileaddr
+filesize
+%s: Nothing to flash, exiting 
+Erasing sector %d..%d
+Could find the partition name = %s 
+Data size exceeds the parition size 
+Board: Ubiquiti Networks %s board (%s)
+Normal
+Reset: %s
+Parameter error
+Data too big
+Fill with data from %p. [size - %04X]
+Writing EEPROM from %p to %p. [size - %04X]
+Board ID: %hx
+Force setting board ID!
+Error scanning board id
+Board ID is programmed as %hx already!
+Out of memory
+Erasing sector %d
+RegulatoryDomain:
+Out of memory:size=%d
+Usage: gpio num state [0-off/1-on]
+GPIO %d into state: %s
+GPIO dir=0x%08x; out=0x%08x
+Currently programmed:
+	MAC0: %02X:%02X:%02X:%02X:%02X:%02X
+	MAC1: %02X:%02X:%02X:%02X:%02X:%02X
+	WIFI: %02X:%02X:%02X:%02X:%02X:%02X
+UNKNOWN WLAN CHIP.
+WLAN MAC not found. Invalid EEPROM.
+Using WLAN MAC %02X:%02X:%02X:%02X:%02X:%02X
+Writing all MACs
+Copying EEPROM from %p to %p
+MAC0 %02X:%02X:%02X:%02X:%02X:%02X
+MAC1 %02X:%02X:%02X:%02X:%02X:%02X
+WIFI %02X:%02X:%02X:%02X:%02X:%02X
+DFS: 0x%04x
+BOM Rev: %d-%05d-%02d
+Will reset device configuration (Reset button active after %d seconds).
+Timeout not reached. Reseting...
+urescue
+AR7241
+AR7240
+AR7242
+AR9330
+AR9331
+AR9341
+AR9342
+AR9344
+unknown
+Radio: %04x:%04x
+mtdparts=ath-nor0:256k(u-boot),64k(u-boot-env),1024k(kernel),6528k(rootfs),256k(cfg),64k(EEPROM)
+PARTIALLY ON
+Software Protection Mode [SPM]
+Unlocked [SRWD not set]
+Hardware Protection Mode [HPM]
+Locked
+Unlocked [SRWD not set, HW WP off]
+Unlocked [HW WP off]
+-------------------------------------------------------
+Flash Protection Status
+Writable
+Read-Only
+Partially-Writable
++Unlocked
++Locked
+, HPM on if protected
+, HPM on always
+Flash protection.............%s [%s%s%s].
+Block Protection.............%s
+Mode.........................%s
+HW Locked....................%s
+bootargs=console=tty0 root=31:03 rootfstype=squashfs init=/init
+bootcmd=bootm 0x9f050000
+bootdelay=1
+ipaddr=192.168.1.20
+serverip=192.168.1.254
+ubntaddr=0x80200020
+AirGWP
+`>{&lY
+?A$s{ 
+_}n:Bw
+`3IPv1
+6SO:jN
+qBhZ;C
+_`g<@R
+eieee1
+glxz;eeN
+1+^%<A
+072X#;
+W3p`CA
+-<e^M4
+j%k(nI<
+9xca[L
+c[/meIg
+#~xKC|
+iS-V-F
+.JjK[_
+f}O6Pt.%
+2N64-M
+E&$;=w7
+cyOt8k
+uh\Ge.
+~^`:W<}l
+}:hzf437i
+4~(<''
+	Qicfv`
+#b|M?Z
+\8xHYs
+4E.!	)
+6}r/$/
+q1&1!8T
+[ oI7p';&
+%2I8uV
+H94,WW
+lLaQ>V
